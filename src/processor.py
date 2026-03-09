@@ -1,0 +1,1 @@
+# Pulizia immagini (Sea-Thru, CLAHE, Denoising)

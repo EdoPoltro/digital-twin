@@ -1,0 +1,1 @@
+# Funzioni OpenCV comuni (resize, crop, color conversion)

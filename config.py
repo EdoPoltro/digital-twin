@@ -1,0 +1,1 @@
+# Parametri globali (soglie luce, percorsi cartelle)

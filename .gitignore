@@ -1,0 +1,21 @@
+# Ambienti Virtuali
+venv/
+.env
+
+# Dati pesanti (Fondamentale!)
+data/
+*.JPG
+*.png
+*.ply
+*.obj
+*.stl
+
+# Cache e Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

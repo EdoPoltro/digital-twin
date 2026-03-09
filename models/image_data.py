@@ -1,0 +1,1 @@
+# Classe che contiene Foto + Metadati (EXIF, GPS)
