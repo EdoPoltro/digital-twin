@@ -3,9 +3,14 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 DATA_DIR = BASE_DIR / 'data'
-INPUT_DIR = DATA_DIR / 'input'
-INPUT_RAW_IMAGES_DIR = INPUT_DIR / 'raw_images'
-OUTPUT_DIR = DATA_DIR / 'output'
+MODELS_DIR = BASE_DIR / 'models'
+UTILS_DIR = BASE_DIR / 'utils'
+SRC_DIR = BASE_DIR / 'src'
+
+INPUT_RAW_IMAGES_DIR = DATA_DIR / 'raw_inputs'
+INTERIM_IMAGES_DIR = DATA_DIR / 'interim'
+PROCESSED_IMAGES_DIR = DATA_DIR / 'processed'
+OUTPUT_3D_MODELS_DIR = DATA_DIR / '3d_outputs'
 
 SUPPORTED_INPUT_FORMATS = ('.jpg', '.jpeg', '.png', '.tiff', '.tif')
 DEFAULT_PROCESSED_OUTPUT_FORMAT = '.png'

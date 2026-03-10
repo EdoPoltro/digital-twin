@@ -83,5 +83,18 @@ width serve per chiudere i file immagine se scoppia un eccezione o se termina l'
 
 uso i dati exif incapsulati nelle foto li traduco con la libreria tags in un dict ma prima lo estendo con un sotto dizionario presente in exif data per prendere anche il valore della focale. eseguo questo per tutte le foto
 
-(mancano i dati gps e i dati di localizzazione)
+i dati gps sono salvati in tuple di tuple ((x, y),(x, y),(x, y)) si ottengono sempre dai dati exif (sto valutando di separare in due funzioni per i dati della camera dai dati del gps per avere una maggiore separazione). inoltre sto valutando che qualora ci sia un problema di una sola immagine non devo lanciare un eccezione che va a main ma devo scartare la foto e gestire leccezione nella funzione con il for
 
+si possono adottare due approcci per la gestione degli errori: o scarto la foto subito, o se magari una foto ha risoluzione ottima ma mancano i dati gps li metto a none e tengo la foto -> per semplicita di implementazione per ora tengo la prima opzione 
+va discusso il quando scartare una foto per quali dati mancanti pero ra do peso piu al gps 
+
+## cartella data 
+ho reso piu rigorosa la struttura della cartella data per sapere in ogni fase della pipeline dove viaggiano i miei dati con input raw , interim (le foto passate dai filtri ma ancora di brutta copia, se non mi soddisfano posso scartarle e passare altri filtri e ricominciare da raw), processed (il dataset finale), output (i modelli generati ).
+
+per ottenere la dimensione del sensore devo scaricare un database in json e caricarlo in SENSOR_DB_DIR
+
+ho scartato lestrazione del senso dimension dal json perche non aveva tutte le dimensioni che mi servivano quindi ho iniziato a calolare la dimensione tramite una formula cosi sono sicuro che se ci sono i due campi del local len allora la calola sempre ( non ho gestito le exception ancora per un paio di occasioni perche devo capire meglio e piu rigorosamente quando scartare un immagine se mancano i dati) 
+
+ho fatto su helper per aprire i file json e restituire un dict anche se non servira pero lho fatta 
+
+ho scartato anche orientation perche allinzio la intendevo in modo diverso come se fosse un drone che scattava le foto. e tramite gli exif era possibile solo estrarre se la foto era fatta im verticale o orizzontale 

@@ -46,7 +46,6 @@ class SpatialMetadata:
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     altitude: Optional[float] = None
-    orientation: Dict[str, float] = field(default_factory=lambda: {"r": 0.0, "p": 0.0, "y": 0.0})
 
 @dataclass
 class CapturedImage:
