@@ -1,16 +1,17 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Optional, Dict
+from pathlib import Path
+from typing import Optional
 import datetime
 import os
 import uuid
 
 class ImageStatus(Enum):
     """Definisce gli stati possibili di un'immagine nella pipeline."""
-    RAW = auto()          
-    PROCESSED = auto()    
-    RECONSTRUCTED = auto() 
-    ERROR = auto()   
+    RAW = auto()
+    INTERIM = auto()
+    PROCESSED = auto()
+    ERROR = auto()
 
 @dataclass
 class CameraMetadata:
@@ -69,11 +70,10 @@ class CapturedImage:
 
     file_path: str
     image_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    processed_path: Optional[str] = None
 
     file_name: str = field(init=False)
     file_extension: str = field(init=False)
-    status: str = "RAW"
+    status: ImageStatus = ImageStatus.RAW
 
     camera_metadata: CameraMetadata = field(default_factory=CameraMetadata)
     spatial_metadata: SpatialMetadata = field(default_factory=SpatialMetadata)
@@ -82,3 +82,6 @@ class CapturedImage:
         """Calcoli automatici dopo la creazione dell'oggetto"""
         self.file_name = os.path.basename(self.file_path)
         self.file_extension = os.path.splitext(self.file_name)[1].lower()
+
+    def update_file_path(self, target_dir: Path):
+        self.file_path = str(target_dir/ f'{self.file_name}')

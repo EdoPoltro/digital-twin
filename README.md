@@ -97,4 +97,14 @@ ho scartato lestrazione del senso dimension dal json perche non aveva tutte le d
 
 ho fatto su helper per aprire i file json e restituire un dict anche se non servira pero lho fatta 
 
-ho scartato anche orientation perche allinzio la intendevo in modo diverso come se fosse un drone che scattava le foto. e tramite gli exif era possibile solo estrarre se la foto era fatta im verticale o orizzontale 
+ho scartato anche orientation perche allinzio la intendevo in modo diverso come se fosse un drone che scattava le foto. e tramite gli exif era possibile solo estrarre se la foto era fatta im verticale o orizzontale.
+
+## 11/03/2026 :
+
+implemento la soft delete per le immagini e modifico metadata_extractor.py e studio piu rigorosamente la gli errori nelle immagini:
+un immagina va in error se:
+- non si apre o e corratta
+- no focal length
+- no foacl length 35mm
+- no resolution
+- no lon o len 

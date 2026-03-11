@@ -1,7 +1,9 @@
-from models.image_data import CapturedImage
+from config import DEFAULT_ENVIRONMENT_CLEAN_UP
+from models.image_data import CapturedImage, ImageStatus
 from src.ingestion import get_raw_captured_images
 from src.metadata_extractor import extract_all_raw_captured_images_metadata
 from utils.exceptions import BaseError
+from utils.helpers_io import promote_captured_images, setup_project_environment
 
 def main():
     print("="*40)
@@ -9,14 +11,16 @@ def main():
     print("="*40)
 
     try:
+        setup_project_environment(DEFAULT_ENVIRONMENT_CLEAN_UP)
+        
         print('Creazione dell\'array di immagini')
         captured_images: list[CapturedImage] = get_raw_captured_images()
 
         print('Estrazione dei metadati')
-        captured_images = extract_all_raw_captured_images_metadata(captured_images)
+        extract_all_raw_captured_images_metadata(captured_images)
 
 # print per debug
-        foto_test = captured_images[0]
+        foto_test = captured_images[3]
 
         print("\n" + "="*40)
         print("📸 REPORT PRIMA IMMAGINE")
@@ -52,10 +56,11 @@ def main():
         print(f"Altitudine:  {alt_str}")
         print(f"Timestamp:  {date}")
         print("="*40 + "\n")
+
+        promote_captured_images(captured_images, ImageStatus.PROCESSED)
         
     except BaseError as e:
         print(e)
-
     except Exception as e:
         print(f'Errore critico di sistema: {e}')
 

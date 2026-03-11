@@ -1,21 +1,24 @@
-CLR_RESET = "\033[0m"     # Bianco
-CLR_WARNING = "\033[93m"  # Giallo
-CLR_ERROR = "\033[91m"    # Rosso
+CLR_RESET = "\033[0m"    
+CLR_WARNING = "\033[93m"  
+CLR_ERROR = "\033[91m"    
 
 class BaseError(Exception):
     """Classe base per tutti gli errori custom del progetto."""
-    def __init__(self, message: str, suggestion: str = None, error_type: str = CLR_ERROR):
-        self.message = message
-        self.suggestion = suggestion
-        self.error_type = error_type
-        super().__init__(self.message)
+    def __init__(self, exception_message: str, exception_suggestion: str = None, exception_type: str = CLR_ERROR):
+        self.exception_message = exception_message
+        self.exception_suggestion = exception_suggestion
+        self.exception_type = exception_type
+        super().__init__(self.exception_message)
 
     def __str__(self):
-        error_name = self.__class__.__name__
-        text = f"\n[ERROR] {error_name}: {self.message}"
-        if self.suggestion:
-            text += f"\n[SUGGESTION] -> {self.suggestion}"
-        return f'{self.error_type}{text}{CLR_RESET}'
+        exception_name = self.__class__.__name__
+        if self.exception_type == CLR_ERROR:
+            text = f"\n[ERROR] {exception_name}: {self.exception_message}"
+        else:
+            text = f"\n[WARNING] {exception_name}: {self.exception_message}"
+        if self.exception_suggestion:
+            text += f"\n[SUGGESTION] -> {self.exception_suggestion}"
+        return f'{self.exception_type}{text}{CLR_RESET}'
 
 class FolderNotFoundError(BaseError):
     """Sollevata quando una cartella specifica non viene trovata."""
@@ -64,3 +67,15 @@ class EmptyDatasetError(BaseError):
         message = f"No valid data available after the phase: {step_name}."
         suggestion = "Check that the data is not corrupted and is located in the correct folder."
         super().__init__(message, suggestion, CLR_ERROR)
+
+class ImageCopyError(BaseError):
+    def __init__(self, image_path: str):
+        message = f"Image copy error: '{image_path}'"
+        suggestion = "Check if the image exists."
+        super().__init__(message, suggestion, CLR_WARNING)
+        
+class EnvSetupError(BaseError):
+    def __init__(self, image_path: str):
+        message = f"Environment setup error: '{image_path}'"
+        suggestion = "Unable to set up the environment."
+        super().__init__(message, suggestion, CLR_WARNING)
