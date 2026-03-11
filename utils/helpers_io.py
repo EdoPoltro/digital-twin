@@ -79,7 +79,7 @@ def promote_captured_image(captured_image: CapturedImage, target_dir: Path, prom
     
 def promote_captured_images(captured_images: list[CapturedImage], promotion_status: ImageStatus) -> None:
     """
-    Funzione che gestisce la promozione dello stato di una lista di immagini
+    Funzione che gestisce la promozione dello stato di una lista di immagini e le copia 
 
     Args:
         caputerd_images (list[CapturedImage]): lista da spostare

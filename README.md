@@ -13,7 +13,7 @@ flusso :
 
 OpenCV : libreria python per la correzione dei colori
 Open3D o PyVista : nuvole di punti
-AliceVision / Meshroom (via API) : ricostruzione 3D
+OpenMVG ricostruzione 3D
 Flask o Fast API : interfaccia web
 watchdog : modifica in tempo reale delle foto
 
@@ -108,3 +108,7 @@ un immagina va in error se:
 - no foacl length 35mm
 - no resolution
 - no lon o len 
+
+creato la funzione per la promozione delle foto e le sottofunzioni e quella per ripulre lambiente 
+
+ok a questo punto costruisci con colmap la nuvola di punti e il modello 3d e con open3d pulisco il risultato e lo visualizzo 

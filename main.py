@@ -1,7 +1,7 @@
 from config import DEFAULT_ENVIRONMENT_CLEAN_UP
 from models.image_data import CapturedImage, ImageStatus
-from src.ingestion import get_raw_captured_images
-from src.metadata_extractor import extract_all_raw_captured_images_metadata
+from src.ingestion_manager import get_raw_captured_images
+from src.metadata_extractor_manager import extract_all_raw_captured_images_metadata
 from utils.exceptions import BaseError
 from utils.helpers_io import promote_captured_images, setup_project_environment
 
