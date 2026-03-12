@@ -1,5 +1,9 @@
 from pathlib import Path
 
+CLR_RESET = "\033[0m"    
+CLR_WARNING = "\033[93m"  
+CLR_ERROR = "\033[91m"    
+
 BASE_DIR = Path(__file__).resolve().parent
 COLMAP_EXE = Path("C:/Users/EdoXP/Desktop/COLMAP/bin/colmap.exe")
 
@@ -12,6 +16,8 @@ RAW_IMAGES_DIR = DATA_DIR / 'raw'
 INTERIM_IMAGES_DIR = DATA_DIR / 'interim'
 PROCESSED_IMAGES_DIR = DATA_DIR / 'processed'
 COLMAP_DIR = DATA_DIR / 'colmap'
+COLMAP_GPS_DATA = COLMAP_DIR / 'gps_data.txt'
+COLMAP_DB_DATA = COLMAP_DIR / 'colmap_data.db'
 COLMAP_SPARSE_DIR = COLMAP_DIR / 'sparse'
 COLMAP_DENSE_DIR = COLMAP_DIR /  'dense'
 OUTPUT_3D_MODELS_DIR = DATA_DIR / '3d_outputs'

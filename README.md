@@ -112,3 +112,11 @@ un immagina va in error se:
 creato la funzione per la promozione delle foto e le sottofunzioni e quella per ripulre lambiente 
 
 ok a questo punto costruisci con colmap la nuvola di punti e il modello 3d e con open3d pulisco il risultato e lo visualizzo 
+
+12/03/2026 
+
+oggi ho proseguito allimplementazione del colmap manager e ho capito che e una tecnologia che e specifica
+
+ora funziona processa servono almeno 15 immagini e non devo cercare di mappare un oggetto trasparente, inoltre ho diminuito il numero max di threads perche andava in crash il programma e ho staccato luso della mia scheda video perche non e nvidia.
+
+come scattare: 20 - 30 foto muovendosi a cerchio su diversi piani di altezza e angolazione fissando loggetto, luce naturale e morbida e un fondo di giornale con tanti punti o cartina geografica insimma cose con molti dettagli 

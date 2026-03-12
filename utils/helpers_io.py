@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-from config import INTERIM_IMAGES_DIR, PROCESSED_IMAGES_DIR, RAW_IMAGES_DIR
-from models.image_data import CapturedImage, ImageStatus
-from utils.exceptions import EmptyDatasetError, EnvSetupError, FileAccessError, FileNotFoundError, ImageCopyError
+from utils.exceptions import EnvSetupError, FileAccessError, FileNotFoundError
 import shutil
+import sqlite3
+from pathlib import Path
 
 def open_json(file_path: Path) -> dict:
     """
@@ -38,69 +38,31 @@ def setup_project_environment(directories: list[Path]):
         else:
             dir.mkdir(parents=True, exist_ok=True)
 
-def get_target_dir(promotion_status: ImageStatus) -> Path:
+
+def write_text_to_file(file_path: Path, content: str):
     """
-    Funzione che ritorna la cartella target in base allo stato delle immagini
+    Funzione che scrive su un file dato il suo percosrso e che lo crea se non esiste
+
+    Args
+        path (Path)
+        content (str)
+    """
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+
+def init_sqlite_connection(db_path: Path) -> sqlite3.Connection:
+    """
+    Prepara il file sul disco e restituisce la connessione al database.
 
     Args:
-        promotion_status (ImageStatus): lista da spostare
+        db_path (Path)
 
     Returns:
-        Path
+        sqlite3.Connection
     """
-    match promotion_status:
-        case ImageStatus.RAW:
-            return RAW_IMAGES_DIR
-        case ImageStatus.INTERIM:
-            return INTERIM_IMAGES_DIR
-        case ImageStatus.PROCESSED:
-            return PROCESSED_IMAGES_DIR
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    if db_path.exists():
+        db_path.unlink()
     
-def promote_captured_image(captured_image: CapturedImage, target_dir: Path, promotion_status: ImageStatus) -> None:
-    """
-    Funzione che gestisce la promozione dello stato di una lista di immagini
-
-    Args:
-        caputerd_image (CapturedImage): lista da spostare
-        promotion_status (ImageStatus): stato finale della immagine
-        target_dir (Path): directory di destinazione
-
-    Raises:
-        ImageCopyError
-    """
-    try:
-        target_path = target_dir / captured_image.file_name
-        shutil.copy2(captured_image.file_path, target_path) # genera esception
-
-        captured_image.status = promotion_status
-        captured_image.update_file_path(target_dir)
-    except (OSError) as e:
-        raise ImageCopyError(captured_image.file_path,'Copy error')
-    
-def promote_captured_images(captured_images: list[CapturedImage], promotion_status: ImageStatus) -> None:
-    """
-    Funzione che gestisce la promozione dello stato di una lista di immagini e le copia 
-
-    Args:
-        caputerd_images (list[CapturedImage]): lista da spostare
-        promotion_status (ImageStatus): stato finale della immagine
-
-    Raises:
-        EmptyDatasetError
-    """
-    if promotion_status in [ImageStatus.ERROR, ImageStatus.RAW]: return # capire se fare una exception
-
-    target_dir = get_target_dir(promotion_status)
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    counter = 0
-
-    for captured_image in captured_images:
-        if captured_image.status in [ImageStatus.ERROR, promotion_status]: continue
-        try:
-            promote_captured_image(captured_image, target_dir, promotion_status)
-            counter += 1
-        except (ImageCopyError) as e:
-            print(e)
-
-    if counter == 0: raise EmptyDatasetError(step_name='Images copy')
+    return sqlite3.connect(db_path)

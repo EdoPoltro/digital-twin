@@ -1,9 +1,11 @@
 from config import DEFAULT_ENVIRONMENT_CLEAN_UP
 from models.image_data import CapturedImage, ImageStatus
+from src.colmap_manager import upload_captured_images_metadata
 from src.ingestion_manager import get_raw_captured_images
 from src.metadata_extractor_manager import extract_all_raw_captured_images_metadata
+from src.promoter_manager import promote_captured_images
 from utils.exceptions import BaseError
-from utils.helpers_io import promote_captured_images, setup_project_environment
+from utils.helpers_io import setup_project_environment
 
 def main():
     print("="*40)
@@ -20,7 +22,7 @@ def main():
         extract_all_raw_captured_images_metadata(captured_images)
 
 # print per debug
-        foto_test = captured_images[3]
+        foto_test = captured_images[0]
 
         print("\n" + "="*40)
         print("📸 REPORT PRIMA IMMAGINE")
@@ -58,6 +60,10 @@ def main():
         print("="*40 + "\n")
 
         promote_captured_images(captured_images, ImageStatus.PROCESSED)
+
+        captured_images = list(filter(lambda img: img.status is not ImageStatus.ERROR, captured_images))
+
+        upload_captured_images_metadata(captured_images)
         
     except BaseError as e:
         print(e)
