@@ -1,1 +1,0 @@
-# Classe per gestire la nuvola di punti risultante

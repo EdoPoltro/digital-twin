@@ -1,6 +1,4 @@
-CLR_RESET = "\033[0m"    
-CLR_WARNING = "\033[93m"  
-CLR_ERROR = "\033[91m"    
+from src.utils.logging_utils import CLR_ERROR, CLR_RESET, CLR_WARNING
 
 class BaseError(Exception):
     """Classe base per tutti gli errori custom del progetto."""
@@ -79,3 +77,13 @@ class EnvSetupError(BaseError):
         message = f"Environment setup error: '{image_path}'"
         suggestion = "Unable to set up the environment."
         super().__init__(message, suggestion, CLR_WARNING)
+
+class ColmapError(BaseError):
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        messagge = f"Colmap Error: {exception_message}"
+        super().__init__(messagge, exception_type)
+
+class UploadingMetadataError(BaseError):
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        messagge = f"Uploding Metadata Error: {exception_message}" 
+        super().__init__(messagge, exception_type)

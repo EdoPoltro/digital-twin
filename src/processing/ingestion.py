@@ -1,7 +1,7 @@
 import os
-from config import RAW_IMAGES_DIR, SUPPORTED_INPUT_FORMATS
-from models.image_data import CapturedImage
-from utils.exceptions import FolderNotFoundError, FolderAccessError
+from config import DATA_PROCESSING_RAW_DIR, SUPPORTED_INPUT_FORMATS
+from src.models.captured_image import CapturedImage
+from src.core.exceptions import FolderNotFoundError, FolderAccessError
 
 def get_raw_captured_images():
     """
@@ -17,15 +17,15 @@ def get_raw_captured_images():
 
     raw_captured_images = []
 
-    if not RAW_IMAGES_DIR.exists():
-        raise FolderNotFoundError(RAW_IMAGES_DIR)
+    if not DATA_PROCESSING_RAW_DIR.exists():
+        raise FolderNotFoundError(DATA_PROCESSING_RAW_DIR)
     
-    if not os.access(RAW_IMAGES_DIR, os.R_OK | os.X_OK):
-        raise FolderAccessError(RAW_IMAGES_DIR)
+    if not os.access(DATA_PROCESSING_RAW_DIR, os.R_OK | os.X_OK):
+        raise FolderAccessError(DATA_PROCESSING_RAW_DIR)
     
-    for raw_captured_image_name in os.listdir(RAW_IMAGES_DIR):
+    for raw_captured_image_name in os.listdir(DATA_PROCESSING_RAW_DIR):
         if raw_captured_image_name.lower().endswith(SUPPORTED_INPUT_FORMATS):
-            raw_captured_image = CapturedImage(str(RAW_IMAGES_DIR / raw_captured_image_name))
+            raw_captured_image = CapturedImage(str(DATA_PROCESSING_RAW_DIR / raw_captured_image_name))
             raw_captured_images.append(raw_captured_image)
         
     return raw_captured_images

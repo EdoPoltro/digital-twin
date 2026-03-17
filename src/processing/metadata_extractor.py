@@ -1,9 +1,9 @@
 from typing import Any
-from models.image_data import CapturedImage, ImageStatus
+from src.models.captured_image import CapturedImage, ImageStatus
 from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import TAGS, GPSTAGS, IFD
-from utils.exceptions import BaseError, ImageLoadError, MetadataExtractionError, EmptyDatasetError
-from utils.math_utils import exif_gps_to_decimal
+from src.core.exceptions import BaseError, ImageLoadError, MetadataExtractionError, EmptyDatasetError
+from src.utils.math_utils import exif_gps_to_decimal
 from datetime import datetime
 
 def extract_camera_metadata(raw_captured_image: CapturedImage, exif_data: dict[str | int, Any]) -> None:

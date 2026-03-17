@@ -1,8 +1,8 @@
 
 from pathlib import Path
-from config import INTERIM_IMAGES_DIR, PROCESSED_IMAGES_DIR, RAW_IMAGES_DIR
-from models.image_data import CapturedImage, ImageStatus
-from utils.exceptions import EmptyDatasetError,ImageCopyError
+from config import DATA_PROCESSING_INTERIM_DIR, DATA_PROCESSING_PROCESSED_DIR, DATA_PROCESSING_RAW_DIR
+from src.models.captured_image import CapturedImage, ImageStatus
+from src.core.exceptions import EmptyDatasetError,ImageCopyError
 import shutil
 from pathlib import Path
 
@@ -18,11 +18,11 @@ def get_target_dir(promotion_status: ImageStatus) -> Path:
     """
     match promotion_status:
         case ImageStatus.RAW:
-            return RAW_IMAGES_DIR
+            return DATA_PROCESSING_RAW_DIR
         case ImageStatus.INTERIM:
-            return INTERIM_IMAGES_DIR
+            return DATA_PROCESSING_INTERIM_DIR
         case ImageStatus.PROCESSED:
-            return PROCESSED_IMAGES_DIR
+            return DATA_PROCESSING_PROCESSED_DIR
     
 def promote_captured_image(captured_image: CapturedImage, target_dir: Path, promotion_status: ImageStatus) -> None:
     """

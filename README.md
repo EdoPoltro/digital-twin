@@ -120,3 +120,16 @@ oggi ho proseguito allimplementazione del colmap manager e ho capito che e una t
 ora funziona processa servono almeno 15 immagini e non devo cercare di mappare un oggetto trasparente, inoltre ho diminuito il numero max di threads perche andava in crash il programma e ho staccato luso della mia scheda video perche non e nvidia.
 
 come scattare: 20 - 30 foto muovendosi a cerchio su diversi piani di altezza e angolazione fissando loggetto, luce naturale e morbida e un fondo di giornale con tanti punti o cartina geografica insimma cose con molti dettagli 
+
+13/03/2026 
+creo il servizio per iniziare a riorganizzare col map, sposto in altri due file la generazionedel db e la generazione del file txt
+l'overlap se messo a 10 quando col map confronta la foto 50 su 100 la confronta con le altre foto tra 40 e 60 
+
+16/03/2026
+
+ho scoeprto che non sempre servono i dati gps perche vengono usati nella fase appena successiva della creazione della nuvola sparsa ma solo in caso di ambienti outdoor se le foto sono in uno spazio troppo ristretto il calcolo fallirà.
+va leggermetne modificato il criterio di scarto delle foto
+
+17/03/2026 
+
+terminata la ristrutturazione generale dell'app, rimane da decidere la soft delite o la cancellazione diretta con filter (in ogni caso prima di colmap devo avere un array pulito), da sistemare le exception, da implmentare le funzionalita legate al flag SCAN_MODE, e continuare con aligned e la nuvola di punti densa
