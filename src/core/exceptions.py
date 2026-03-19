@@ -80,10 +80,15 @@ class EnvSetupError(BaseError):
 
 class ColmapError(BaseError):
     def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
-        messagge = f"Colmap Error: {exception_message}"
-        super().__init__(messagge, exception_type)
+        exception_suggestion = "There is an issue during the sparse point cloud generation phase."
+        super().__init__(exception_message, exception_suggestion, exception_type)
+
+class OpenmvsError(BaseError):
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        exception_suggestion = "There is an issue during the dense point cloud or mesh generation phase."
+        super().__init__(exception_message, exception_suggestion, exception_type)
 
 class UploadingMetadataError(BaseError):
     def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
-        messagge = f"Uploding Metadata Error: {exception_message}" 
-        super().__init__(messagge, exception_type)
+        exception_suggestion = "There is an issue during the metadata uploading phase."
+        super().__init__(exception_message, exception_suggestion, exception_type)

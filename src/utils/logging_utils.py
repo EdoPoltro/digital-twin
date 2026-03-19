@@ -11,4 +11,4 @@ def error_alert(msg: str):
     print(f'{CLR_ERROR}[ERORR]: {msg}{CLR_RESET}')
 
 def log_alert(msg: str):
-    print(f'{CLR_RESET}[LOG]: {msg}{CLR_RESET}')
+    print(f'{CLR_RESET}[✅ ]: {msg}{CLR_RESET}')

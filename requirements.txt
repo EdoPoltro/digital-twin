@@ -1,7 +1,0 @@
-numpy
-opencv-python
-open3d
-pillow
-pyyaml
-exif
-scipy

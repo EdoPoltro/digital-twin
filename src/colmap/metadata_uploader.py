@@ -1,7 +1,8 @@
 from pathlib import Path
 import subprocess
+from typing import Literal
 from src.utils.logging_utils import CLR_WARNING
-from config import DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, DATA_COLMAP_DEFAULT_GPS_DATA
+from config import DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, DATA_COLMAP_DEFAULT_GPS_DATA, DEFAULT_SCAN_MODE
 from src.models.captured_image import CameraMetadata, CapturedImage, ImageStatus, SpatialMetadata
 from src.core.exceptions import UploadingMetadataError
 from src.utils.helpers_io import init_sqlite_connection, write_text_to_file
@@ -133,7 +134,7 @@ def _start_gps_metadata_uploading(captured_images: list[CapturedImage], gps_txt_
 
     write_text_to_file(gps_txt_path, "".join(gps_data_block))
 
-def start_full_metadata_uploading(captured_images: list[CapturedImage], cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA):
+def start_full_metadata_uploading(captured_images: list[CapturedImage], cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA, scan_mode: Literal['indoor', 'outdoor'] = DEFAULT_SCAN_MODE):
     """
     Funzione per il caricamento dei dati gps e delle focali
 
@@ -147,5 +148,5 @@ def start_full_metadata_uploading(captured_images: list[CapturedImage], cameras_
     """
     valid_images = [img for img in captured_images if img.status != ImageStatus.ERROR] # per disallinemanto
     _start_camera_metadata_uploading(valid_images, cameras_db_path)
-    _start_gps_metadata_uploading(valid_images, gps_txt_path)
+    if scan_mode == 'outdoor': _start_gps_metadata_uploading(valid_images, gps_txt_path)
 

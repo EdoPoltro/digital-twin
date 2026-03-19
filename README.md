@@ -133,3 +133,33 @@ va leggermetne modificato il criterio di scarto delle foto
 17/03/2026 
 
 terminata la ristrutturazione generale dell'app, rimane da decidere la soft delite o la cancellazione diretta con filter (in ogni caso prima di colmap devo avere un array pulito), da sistemare le exception, da implmentare le funzionalita legate al flag SCAN_MODE, e continuare con aligned e la nuvola di punti densa
+
+ho scoperto che per la costruzione della nuvola densa non si puo non usare la scheda video nvidia quindi sto valutando un alternativa (openmvs), open3d invece lo usiamo per la fase successiva (mesh) perche e ottimo per modellare il 3d ma non e in grado di crearlo a partire dalle immagini.
+openmvs e famoso per prendere i dati da colmap (nuvola sparsa) e creare la rispettiva nuvola densa .ply
+
+1. COLMAP (Il Geometra)
+Cosa fa: Estrae i punti chiave, capisce la posizione delle fotocamere nello spazio, crea la Nuvola Sparsa e (se sei outdoor) fa l'Allineamento GPS.
+
+Perché lui: È il re indiscusso dello Structure from Motion (SfM). Nessuno calcola lo spazio meglio di lui. Alla fine, esporta un file pacchetto per OpenMVS.
+
+2. OpenMVS (Il Costruttore)
+Cosa fa: Prende i dati di COLMAP e genera la Nuvola Densa.
+
+✨ Il colpo di scena sulla Mesh: Ti consiglio di far fare la Mesh e la Texture a OpenMVS, non a Open3D! OpenMVS ha dei moduli specifici (ReconstructMesh e TextureMesh) che non solo creano la pelle solida, ma proiettano le tue fotografie originali sopra la Mesh, rendendola identica alla realtà (il vero Digital Twin). Open3D fa molta fatica a "colorare" bene una mesh partendo dalle foto.
+
+3. Open3D (L'Ispettore / L'Ingegnere)
+Cosa fa: Prende la Mesh texturizzata (o la Nuvola Densa) finale generata da OpenMVS, la apre a schermo e ti permette di fare le operazioni ingegneristiche:
+
+Scalatura (Indoor): Clicchi su due punti dello scatolone, gli dici "sono 45 cm" e lui ridimensiona tutto il modello 3D nel mondo reale.
+
+Pulizia: Tagli via il pavimento o i pezzi di stanza che non ti interessano (Cropping).
+
+Misurazioni: Calcoli volumi, distanze o aree.
+
+ok questa parte e presa da gemini comuqnue voglio rimuovere la parte di mesh e dense da colmap perche non posso fare il dense senza una scheda video nvidia ma comunque sarebbe meno efficiente rispetto ad usare openmvs quidni riorganizzo il progetto e le cartelle data e creo tre manage per le tre parti
+
+19/03/2026
+
+ho ottenuto la prima nuvola di punti densa: ho modificato il colmap manager ora come ultimo passaggio converto le foto in undistorted e succesivamente importo il model.mvs, successivamente quando sono pronto lancio il comando per generare la nuvola di punti
+
+ho implmentato il poisson matcher ma fa abbassare veramente tanto la qualita del mesh quindi sto cercando un alternativa.
