@@ -11,19 +11,18 @@ CLR_ERROR = "\033[91m"
 DEFAULT_LOADING_MESSAGGE = "Process in progress."
 
 def warning_alert(msg: str):
-    print(f'{CLR_WARNING}[WARNING]: {msg}{CLR_RESET}')
+    print(f'{CLR_WARNING}[WARNING]: {msg.capitalize()}{CLR_RESET}')
 
 def error_alert(msg: str):
-    print(f'{CLR_ERROR}[ERROR]: {msg}{CLR_RESET}')
+    print(f'{CLR_ERROR}[ERROR]: {msg.capitalize()}{CLR_RESET}')
 
 def success_alert(msg: str):
-    print(f'{CLR_RESET}[SUCCESS]: {msg}{CLR_RESET}')
+    print(f'{CLR_RESET}[SUCCESS]: {msg.capitalize()}{CLR_RESET}')
 
 # successivamente si può ampliare con la percentuale di progresso ma dipende molto dall'output del mio motore di calcolo.
 def subprocess_execution(command: list[str], loading_msg: str = DEFAULT_LOADING_MESSAGGE, output_log: bool = False, check: bool = True, **kwargs):
 
     timeout = kwargs.pop('timeout', None)
-
     
     if not output_log:
         if 'stdout' not in kwargs:
@@ -39,7 +38,7 @@ def subprocess_execution(command: list[str], loading_msg: str = DEFAULT_LOADING_
 
     try:
         if output_log:
-            print(f"\n⚙️ [RUNNING]: {loading_msg}\n{'-'*50}")
+            print(f"\n⚙️ [RUNNING]: {loading_msg.capitalize()}\n{'-'*50}")
             try:
                 process.wait(timeout=timeout)
             except subprocess.TimeoutExpired:

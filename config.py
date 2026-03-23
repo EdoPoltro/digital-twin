@@ -47,8 +47,7 @@ DATA_OPENMVS_DEFAULT_MODEL = DATA_OPENMVS_DIR / 'model.mvs'
 DATA_OPENMVS_DEFAULT_MODEL_DENSE = DATA_OPENMVS_DIR / 'model_dense.mvs'
 DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS = DATA_OPENMVS_DIR / 'model_mesh.mvs'
 DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY = DATA_OPENMVS_DIR / 'model_mesh.ply'
-# da mettere texturized
-DATA_OPENMVS_DEFAULT_MODEL_TEXTURIZED = DATA_OPENMVS_DIR / 'model_textured.obj'
+DATA_OPENMVS_DEFAULT_MODEL_TEXTURED = DATA_OPENMVS_DIR / 'model_textured.obj'
 
 DATA_OPEN3D_DIR = DATA_DIR / 'open3d'
 DATA_OPEN3D_EXPORTED_MODEL = DATA_OPEN3D_DIR / 'model.obj'
@@ -66,7 +65,7 @@ SUPPORTED_3D_FORMATS = ('.ply', '.obj', '.stl')
 # FLAGS
 
 DEFAULT_SCAN_MODE = 'indoor' # 'indoor' | 'outdoor' 
-DEFAULT_SYSTEM_MODE = 'windows' # 'windows | linux
+DEFAULT_ENVIRONMENT_MODE = 'standard' # 'standard' | 'underwater'
 DEFAULT_MIN_PHOTO_ERROR = 5
 DEFAULT_MIN_PHOTO_WARNING = 15
 

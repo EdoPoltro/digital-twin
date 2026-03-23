@@ -18,20 +18,6 @@ class BaseError(Exception):
             text += f"\n[SUGGESTION] -> {self.exception_suggestion}"
         return f'{self.exception_type}{text}{CLR_RESET}'
 
-class FolderNotFoundError(BaseError):
-    """Sollevata quando una cartella specifica non viene trovata."""
-    def __init__(self, folder_path: str):
-        message = f"Folder not found: '{folder_path}'"
-        suggestion = "Check if the folder exists and the path is correct."
-        super().__init__(message, suggestion, CLR_ERROR)
-
-class FolderAccessError(BaseError):
-    """Sollevata per permessi negati."""
-    def __init__(self, folder_path: str):
-        message = f"Access denied: '{folder_path}'"
-        suggestion = "Check OS permissions (Read/Execute)."
-        super().__init__(message, suggestion, CLR_ERROR)
-
 class FileAccessError(BaseError):
     """Sollevata per permessi negati."""
     def __init__(self, file_path: str):
@@ -82,6 +68,11 @@ class IngestionError(BaseError):
 class MetadataExtractorError(BaseError):
     def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
         suggestion = "Check file metadata_extractor.py."
+        super().__init__(exception_message, suggestion, exception_type)
+        
+class ProcessorError(BaseError):
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        suggestion = "Check file processor_manager.py."
         super().__init__(exception_message, suggestion, exception_type)
 
 class PromoterError(BaseError):

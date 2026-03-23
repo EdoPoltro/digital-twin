@@ -1,6 +1,6 @@
 from pathlib import Path
 import subprocess
-from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DEFAULT_MODEL, DATA_OPENMVS_DEFAULT_MODEL_DENSE, DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS, DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, DATA_OPENMVS_DEFAULT_MODEL_TEXTURIZED, DATA_OPENMVS_DENSE_DEFAULT_EXE, DATA_OPENMVS_DIR, DATA_OPENMVS_INTERFACE_EXE, DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE, DATA_OPENMVS_MESH_TEXTURIZER_DEFAULT_EXE
+from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DEFAULT_MODEL, DATA_OPENMVS_DEFAULT_MODEL_DENSE, DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS, DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, DATA_OPENMVS_DENSE_DEFAULT_EXE, DATA_OPENMVS_DIR, DATA_OPENMVS_INTERFACE_EXE, DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE, DATA_OPENMVS_MESH_TEXTURIZER_DEFAULT_EXE
 from src.core.exceptions import OpenmvsError
 from src.utils.log_utils import error_alert, success_alert, subprocess_execution
 
@@ -92,7 +92,7 @@ class OpenmvsManager:
         self._log_cleanup()
 
     # da COLMAP quindi probabilmente e da sostituire questo comando.
-    def texture_mesh_from_colmap(self, input_model: Path = DATA_OPENMVS_DEFAULT_MODEL, input_model_mesh: Path = DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, output_model_texturized: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURIZED):
+    def texture_mesh_from_colmap(self, input_model: Path = DATA_OPENMVS_DEFAULT_MODEL, input_model_mesh: Path = DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, output_model_texturized: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED):
         """
         Funzione che applica le texture delle foto originali sulla mesh.
         """

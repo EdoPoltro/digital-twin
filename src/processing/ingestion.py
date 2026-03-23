@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from config import DATA_PROCESSING_RAW_DIR, DEFAULT_MIN_PHOTO_ERROR, DEFAULT_MIN_PHOTO_WARNING, SUPPORTED_INPUT_FORMATS
 from src.models.captured_image import CapturedImage
-from src.core.exceptions import FolderNotFoundError, FolderAccessError, IngestionError
+from src.core.exceptions import IngestionError
 from src.utils.log_utils import success_alert, warning_alert
 
 def get_raw_captured_images(input_dir: Path = DATA_PROCESSING_RAW_DIR):

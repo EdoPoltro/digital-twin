@@ -80,9 +80,9 @@ def promote_captured_images(captured_images: list[CapturedImage], promotion_stat
 
     if errors > 0: warning_alert(f'{errors} photos removed.')
 
-    if len(output_captured_images) <= DEFAULT_MIN_PHOTO_WARNING: warning_alert('Less than 15 images detected in the project folder.')
-
     if len(output_captured_images) <= DEFAULT_MIN_PHOTO_ERROR: raise PromoterError('Insufficient photos detected.')
+
+    if len(output_captured_images) <= DEFAULT_MIN_PHOTO_WARNING: warning_alert('Less than 15 images detected in the project folder.')
 
     success_alert(f'Promotion to state {promotion_status} completed.')
 

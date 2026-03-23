@@ -2,7 +2,7 @@ from typing import Literal
 import numpy as np
 import open3d as o3d
 from pathlib import Path
-from config import DATA_OPEN3D_EXPORTED_MODEL, DATA_OPENMVS_DEFAULT_MODEL_TEXTURIZED, DEFAULT_SCAN_MODE
+from config import DATA_OPEN3D_EXPORTED_MODEL, DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, DEFAULT_SCAN_MODE
 from src.core.exceptions import Open3dError
 from src.utils.log_utils import success_alert
 
@@ -13,7 +13,7 @@ class Open3dManager:
         self.mesh = None
         o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Error)
 
-    def start_full_open3d_pipeline(self, scale_real_distance: float = None, scale_virtual_distance: float = None, output_model_path: Path = DATA_OPEN3D_EXPORTED_MODEL, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURIZED):
+    def start_full_open3d_pipeline(self, scale_real_distance: float = 1, scale_virtual_distance: float = 1, output_model_path: Path = DATA_OPEN3D_EXPORTED_MODEL, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED):
         """
         funzione che gestisce la pipeline di Open3D.
         """
@@ -23,7 +23,7 @@ class Open3dManager:
         self.run_mesh_exporter(output_model_path)
         self.run_visualizer()
 
-    def import_from_openmvs(self, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURIZED) -> None:
+    def import_from_openmvs(self, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED) -> None:
         """
         Funzione che carica la mesh texturizzata generata da OpenMVS
         """
@@ -39,7 +39,7 @@ class Open3dManager:
         except Exception as e:
             raise Open3dError(f'Failed to import model from OpenMVS: {e}')
 
-    def generate_resized_mesh(self, real_distance: float, virtual_distance: float):
+    def generate_resized_mesh(self, real_distance: float = 1, virtual_distance: float = 1):
         """
         Funzione usata in indoor mode per dare una dimensione reale agli oggetti.
         """
@@ -56,12 +56,11 @@ class Open3dManager:
         except Exception as e:
             raise Open3dError(f'Mesh scaling failed: {e}')
 
-    def _get_scale_factor(self, real_distance: float, virtual_distance: float) -> float:
+    # TODO: implmentare la funzione che fa ottenere la virtual distance 
+    def _get_scale_factor(self, real_distance: float = 1, virtual_distance: float = 1) -> float:
         """
         Funzione usata in indoor mode per ottenere la scala.
         """
-        if not (virtual_distance and real_distance):
-            raise Open3dError('Distance parameters not found.')
         if virtual_distance <= 0:
             raise Open3dError('Invalid virtual distance value.')
         return real_distance / virtual_distance
