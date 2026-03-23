@@ -17,6 +17,12 @@ def start_digital_twin_pipeline():
         print(f'Digital Twin 3D - Avvio pipline - {DEFAULT_SCAN_MODE.capitalize()} mode')
         print("="*80)
 
+        openmvs = OpenmvsManager()
+
+        openmvs.reconstruct_mesh()
+
+        return 
+
         setup_project_environment(DEFAULT_ENVIRONMENT_CLEAN_UP)
 
         # aggiungere in input la cartella
@@ -35,8 +41,6 @@ def start_digital_twin_pipeline():
         colmap = ColmapManager()
 
         colmap.start_full_colmap_pipeline(use_gpu=False)
-
-        return
 
         # colmap.generate_sparse_point_cloud()
 

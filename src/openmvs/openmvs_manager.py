@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import subprocess
 from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DEFAULT_MODEL, DATA_OPENMVS_DEFAULT_MODEL_DENSE, DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS, DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, DATA_OPENMVS_DENSE_DEFAULT_EXE, DATA_OPENMVS_DIR, DATA_OPENMVS_INTERFACE_EXE, DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE, DATA_OPENMVS_MESH_TEXTURIZER_DEFAULT_EXE
@@ -58,7 +59,7 @@ class OpenmvsManager:
             "-o", str(output_mvs),
             "-w", str(self.openmvs_dir),
             "--archive-type", "1",      
-            "--resolution-level", "0",   
+            "--resolution-level", "2", # risoluzione    
             "--number-views", "0",        
             "--max-threads", "0"          
         ]
@@ -77,18 +78,56 @@ class OpenmvsManager:
         """
         Trasforma la nuvola di punti densa in una mesh di triangoli.
         """
+
+        # input_name = input_model_dense.name
+        # output_name = output_model_mesh.name
+
+        # command = [
+        #     str(self.openmvs_mesh_reconstructor_exe),
+        #     str(input_name),
+        #     "-o", str(output_name),
+        #     "-w", str(self.openmvs_dir)
+        # ]
+
+        # try:
+        #     subprocess_execution(command, 'Generating mesh.')
+        #     success_alert('Mesh generated.')
+        # except Exception as e:
+        #     raise OpenmvsError(f'Mesh generation failed: {e}')
+        # self._log_cleanup()
+
+        """
+        Trasforma la nuvola di punti densa in una mesh di triangoli.
+        """
         command = [
             str(self.openmvs_mesh_reconstructor_exe),
-            str(input_model_dense),
-            "-o", str(output_model_mesh),
-            "-w", str(self.openmvs_dir)
+            input_model_dense.name,
+            "-o", output_model_mesh.name
         ]
 
+        # 🪄 IL TRUCCO: Creiamo un ambiente virtuale "clonato" e limitiamo i thread a 8
+        custom_env = os.environ.copy()
+        custom_env["OMP_NUM_THREADS"] = "8"
+
         try:
-            subprocess_execution(command, 'enerating mesh.')
-            success_alert('Mesh generated.')
-        except Exception as e:
-            raise OpenmvsError(f'Mesh generation failed: {e}')
+            print(f"🚀 Lancio ReconstructMesh (con OMP_NUM_THREADS=8) da: {self.openmvs_dir}")
+            
+            result = subprocess.run(
+                command, 
+                cwd=str(self.openmvs_dir),
+                env=custom_env,              # Passiamo l'ambiente modificato!
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            print(result.stdout)
+            success_alert('Mesh generata con successo!')
+            
+        except subprocess.CalledProcessError as e:
+            print("\n❌ ERRORE INTERNO OPENMVS:")
+            print(e.stderr)
+            raise OpenmvsError(f'Mesh generation failed with exit code {e.returncode}')
+            
         self._log_cleanup()
 
     # da COLMAP quindi probabilmente e da sostituire questo comando.

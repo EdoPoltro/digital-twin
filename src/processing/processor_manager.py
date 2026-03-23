@@ -49,6 +49,7 @@ class ProcessorManager:
             output_path = self.processed_dir / captured_image.file_name
             cv2.imwrite(str(output_path), image_final)
             
+        # TODO: verificare     
         self.captured_images = promote_captured_images(self.captured_images, ImageStatus.PROCESSED)
         success_alert('Standard processor pipeline completed.')
 
