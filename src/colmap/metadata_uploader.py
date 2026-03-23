@@ -1,12 +1,11 @@
 from pathlib import Path
-import subprocess
 from typing import Literal
-from src.utils.logging_utils import CLR_WARNING
-from config import DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, DATA_COLMAP_DEFAULT_GPS_DATA, DEFAULT_SCAN_MODE
+from src.utils.log_utils import success_alert
+from config import DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, DATA_COLMAP_DEFAULT_GPS_DATA, DEFAULT_MIN_PHOTO_ERROR, DEFAULT_MIN_PHOTO_WARNING, DEFAULT_SCAN_MODE
 from src.models.captured_image import CameraMetadata, CapturedImage, ImageStatus, SpatialMetadata
-from src.core.exceptions import UploadingMetadataError
-from src.utils.helpers_io import init_sqlite_connection, write_text_to_file
-from src.utils.logging_utils import warning_alert
+from src.core.exceptions import MetadataUploaderError
+from src.utils.io_utils import init_sqlite_connection, write_text_to_file
+from src.utils.log_utils import warning_alert
 import sqlite3
 import numpy as np
 
@@ -72,7 +71,7 @@ def _upload_captured_image_gps_data(spatial_metadata: SpatialMetadata, file_name
     gps_row = f"{file_name} {spatial_metadata.latitude:.6f} {spatial_metadata.longitude:.6f} {spatial_metadata.altitude:.2f}\n".replace(',', '.')
     return gps_row
 
-def _start_camera_metadata_uploading(captured_images: list[CapturedImage], cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE):
+def start_camera_metadata_uploading(captured_images: list[CapturedImage], cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE):
     """
     Funzione per il caricamento dei dati delle focali nel database
 
@@ -81,9 +80,9 @@ def _start_camera_metadata_uploading(captured_images: list[CapturedImage], camer
         cameras_db_path (Path)
 
     Raises:
-        UploadingMetadataError
+        MetadataUploaderError
     """
-    counter = 0
+    errors = 0
 
     colmap_db_conn = init_sqlite_connection(cameras_db_path)
     cursor = colmap_db_conn.cursor()
@@ -93,18 +92,24 @@ def _start_camera_metadata_uploading(captured_images: list[CapturedImage], camer
         try:
             if captured_image.status == ImageStatus.ERROR: continue
             _upload_captured_image_camera_data(captured_image.camera_metadata, captured_image.file_name, id, cursor)
-            counter += 1
-        except Exception:
-            raise UploadingMetadataError(f"Error loading camera data for image {captured_image.file_name}, potential data misalignment.", CLR_WARNING)     
+            
+        except Exception as e:
+            captured_image.status = ImageStatus.ERROR
+            errors += 1
+            warning_alert(f'Camera metadata uploading failed for photo {captured_image.file_name}, {e}.')    
+        
+    if errors > 0: warning_alert(f'{errors} cameras uploading failed.')
     
-    if counter < 15: warning_alert("Database contains fewer than 15 images. Processing might fail or be inaccurate.")
+    if len(captured_images) - errors < DEFAULT_MIN_PHOTO_WARNING: warning_alert("Less than 15 cameras metadata uploaded.")
 
-    if counter == 0: raise UploadingMetadataError("No cameras metadata uploaded.")
+    if len(captured_images) - errors < DEFAULT_MIN_PHOTO_ERROR: raise MetadataUploaderError('Insufficient cameras metadata uploaded.')
+
+    success_alert(f'Cameras metadata uploading completed.')
     
     colmap_db_conn.commit()
     colmap_db_conn.close()
 
-def _start_gps_metadata_uploading(captured_images: list[CapturedImage], gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA):
+def start_gps_metadata_uploading(captured_images: list[CapturedImage], gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA, scan_mode: Literal['indoor','outdoor'] = DEFAULT_SCAN_MODE):
     """
     Funzione per il caricamento dei dati gps nel file txt 
 
@@ -113,9 +118,9 @@ def _start_gps_metadata_uploading(captured_images: list[CapturedImage], gps_txt_
         gps_txt_path (Path)
 
     Raises:
-        UploadingMetadataError
+        MetadataUploaderError
     """
-    counter = 0
+    errors = 0
 
     gps_data_block: list[str] = []
 
@@ -124,15 +129,21 @@ def _start_gps_metadata_uploading(captured_images: list[CapturedImage], gps_txt_
             if captured_image.status == ImageStatus.ERROR: continue
             gps_data = _upload_captured_image_gps_data(captured_image.spatial_metadata, captured_image.file_name)
             gps_data_block.append(gps_data)
-            counter += 1
-        except Exception: 
-            raise UploadingMetadataError(f"Error loading GPS data for image {captured_image.file_name}, potential data misalignment.", CLR_WARNING)
+            
+        except Exception as e: 
+            if scan_mode == 'indoor': captured_image.status = ImageStatus.ERROR
+            errors += 1
+            warning_alert(f'GPS metadata uploading failed for photo {captured_image.file_name}, {e}.')
 
-    if counter < 15: warning_alert("Database contains fewer than 15 images. Processing might fail or be inaccurate.")
+    if errors > 0: warning_alert(f'{errors} GPS uploading failed.')
 
-    if counter == 0: raise UploadingMetadataError("No GPS metadata uploaded.")
+    if len(captured_images) - errors <= DEFAULT_MIN_PHOTO_WARNING: warning_alert('Less than 15 GPS metadata uploaded.')
+
+    if len(captured_images) - errors <= DEFAULT_MIN_PHOTO_ERROR: raise MetadataUploaderError('Insufficient GPS metadata uploaded.')
 
     write_text_to_file(gps_txt_path, "".join(gps_data_block))
+
+    success_alert(f'GPS metadata uploading completed.')
 
 def start_full_metadata_uploading(captured_images: list[CapturedImage], cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA, scan_mode: Literal['indoor', 'outdoor'] = DEFAULT_SCAN_MODE):
     """
@@ -144,9 +155,8 @@ def start_full_metadata_uploading(captured_images: list[CapturedImage], cameras_
         gps_txt_path (Path)
 
     Raises:
-        UploadingMetadataError
+        MetadataUploaderError
     """
-    valid_images = [img for img in captured_images if img.status != ImageStatus.ERROR] # per disallinemanto
-    _start_camera_metadata_uploading(valid_images, cameras_db_path)
-    if scan_mode == 'outdoor': _start_gps_metadata_uploading(valid_images, gps_txt_path)
+    start_camera_metadata_uploading(captured_images, cameras_db_path)
+    if scan_mode == 'outdoor': start_gps_metadata_uploading(captured_images, gps_txt_path)
 

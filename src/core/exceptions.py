@@ -1,4 +1,4 @@
-from src.utils.logging_utils import CLR_ERROR, CLR_RESET, CLR_WARNING
+from src.utils.log_utils import CLR_ERROR, CLR_RESET, CLR_WARNING
 
 class BaseError(Exception):
     """Classe base per tutti gli errori custom del progetto."""
@@ -52,13 +52,6 @@ class ImageLoadError(BaseError):
         suggestion = "Check if the image is corrupted."
         super().__init__(message, suggestion, CLR_WARNING)
 
-class MetadataExtractionError(BaseError):
-    """Sollevata quando l'immagine si apre, ma i dati EXIF sono corrotti o malformati."""
-    def __init__(self, image_path: str, detail: str = ''):
-        message = f"Failed to parse EXIF metadata in: '{image_path}'"
-        suggestion = f"Check image metadata format. Detail: {detail}"
-        super().__init__(message, suggestion, CLR_WARNING)
-
 class EmptyDatasetError(BaseError):
     """Sollevata quando una lista (es. le immagini estratte) è completamente vuota."""
     def __init__(self, step_name: str = "Processing"):
@@ -71,24 +64,47 @@ class ImageCopyError(BaseError):
         message = f"Image copy error: '{image_path}'"
         suggestion = "Check if the image exists."
         super().__init__(message, suggestion, CLR_WARNING)
+
+
+
+
         
 class EnvSetupError(BaseError):
-    def __init__(self, image_path: str):
-        message = f"Environment setup error: '{image_path}'"
-        suggestion = "Unable to set up the environment."
-        super().__init__(message, suggestion, CLR_WARNING)
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        suggestion = "Check function setup_project_environment() in io_utils.pys."
+        super().__init__(exception_message, suggestion, exception_type)
+
+class IngestionError(BaseError):
+        def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+            suggestion = "Check file ingestion.py."
+            super().__init__(exception_message, suggestion, exception_type)
+
+class MetadataExtractorError(BaseError):
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        suggestion = "Check file metadata_extractor.py."
+        super().__init__(exception_message, suggestion, exception_type)
+
+class PromoterError(BaseError):
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        suggestion = "Check file promoter.py."
+        super().__init__(exception_message, suggestion, exception_type)
+
+class MetadataUploaderError(BaseError):
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        exception_suggestion = "Check file metadata_uploader.py."
+        super().__init__(exception_message, exception_suggestion, exception_type)
 
 class ColmapError(BaseError):
     def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
-        exception_suggestion = "There is an issue during the sparse point cloud generation phase."
+        exception_suggestion = "Check file colmap_manager.py."
         super().__init__(exception_message, exception_suggestion, exception_type)
 
 class OpenmvsError(BaseError):
     def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
-        exception_suggestion = "There is an issue during the dense point cloud or mesh generation phase."
+        exception_suggestion = "Check file openmvs_manager.py."
         super().__init__(exception_message, exception_suggestion, exception_type)
 
-class UploadingMetadataError(BaseError):
+class Open3dError(BaseError):
     def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
-        exception_suggestion = "There is an issue during the metadata uploading phase."
+        exception_suggestion = "Check file open3d_manager.py."
         super().__init__(exception_message, exception_suggestion, exception_type)

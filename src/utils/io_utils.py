@@ -5,6 +5,8 @@ import shutil
 import sqlite3
 from pathlib import Path
 
+from src.utils.log_utils import success_alert
+
 def open_json(file_path: Path) -> dict:
     """
     Legge un file JSON dal disco e restituisce un dizionario.
@@ -33,10 +35,11 @@ def setup_project_environment(directories: list[Path]):
             try:
                 shutil.rmtree(dir)
                 dir.mkdir(parents=True, exist_ok=True)
-            except OSError as e:
-                raise EnvSetupError(str(dir))
+            except Exception:
+                raise EnvSetupError(f'Failed to clean up folder {dir}.')
         else:
             dir.mkdir(parents=True, exist_ok=True)
+    success_alert('Project initialized.')
 
 
 def write_text_to_file(file_path: Path, content: str):

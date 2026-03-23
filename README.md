@@ -163,3 +163,9 @@ ok questa parte e presa da gemini comuqnue voglio rimuovere la parte di mesh e d
 ho ottenuto la prima nuvola di punti densa: ho modificato il colmap manager ora come ultimo passaggio converto le foto in undistorted e succesivamente importo il model.mvs, successivamente quando sono pronto lancio il comando per generare la nuvola di punti
 
 ho implmentato il poisson matcher ma fa abbassare veramente tanto la qualita del mesh quindi sto cercando un alternativa.
+
+23/03/2026 
+negli ultimi due giorni ho lavorato 2 ore (weekend) e ho fatto tetst+ refactorign codice, ho visto che se attivo la modalita gpu sulla creazione della nuvola sparsa va di brutto. il risultato e pressoche uguale ma in termini di tempo ci mette pochissimo.
+
+ora scarico open3d : import open3d as o3d ( libreria python)
+pip install open3d

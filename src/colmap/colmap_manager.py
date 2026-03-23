@@ -3,7 +3,7 @@ import subprocess
 from typing import Literal
 from config import DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, DATA_COLMAP_DEFAULT_EXE, DATA_COLMAP_DEFAULT_GPS_DATA, DATA_COLMAP_ALIGNED_DIR, DATA_COLMAP_DIR, DATA_COLMAP_SPARSE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DIR, DATA_PROCESSING_PROCESSED_DIR, DEFAULT_SCAN_MODE
 from src.core.exceptions import ColmapError
-from src.utils.logging_utils import log_alert
+from src.utils.log_utils import subprocess_execution, success_alert
 
 # usando il il le costanti direttamente nel costruttore automaticamente importo anche il file config (problema di prestazioni semmai)
 
@@ -11,7 +11,7 @@ from src.utils.logging_utils import log_alert
 
 class ColmapManager:
     """
-    Classe per la gestione delle varie fasi dell'esecuzione di colmap
+    Classe per la gestione delle varie fasi dell'esecuzione di COLMAP
 
     Attributes:
         colmap_exe (Path)
@@ -26,26 +26,34 @@ class ColmapManager:
         self.aligned_dir = aligned_dir
 
         self._run_constructor_validation()
-        log_alert(f'Colmap Manager avviato in {self.scan_mode} mode.')
 
-    def start_full_colmap_pipeline(self, cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, images_overlap: int = 10, use_gpu: bool = False, threads_number: int = 2,  max_aligner_error: float = 3.0, gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA, undistorted_dir: Path = DATA_COLMAP_UNDISTORTED_DIR):
-        self.generate_sparse_point_cloud(cameras_db_path, images_overlap, use_gpu, threads_number)
-        if self.scan_mode == 'outdoor': self.generate_aligned_point_cloud(gps_txt_path, max_aligner_error)
-        self.generate_undistort_images(undistorted_dir)
+    # def start_full_colmap_pipeline(self, cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, images_overlap: int = 10, use_gpu: bool = False, threads_number: int = 2,  max_aligner_error: float = 3.0, gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA, undistorted_dir: Path = DATA_COLMAP_UNDISTORTED_DIR):
+    #     self.generate_sparse_point_cloud(cameras_db_path, images_overlap, use_gpu, threads_number)
+    #     if self.scan_mode == 'outdoor': self.generate_aligned_point_cloud(gps_txt_path, max_aligner_error)
+    #     self.generate_undistort_images(undistorted_dir)
 
-    def generate_sparse_point_cloud(self, cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, images_overlap: int = 10, use_gpu: bool = False, threads_number: int = 2):
+    def generate_sparse_point_cloud(self, cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, images_overlap: int = 10, use_gpu: bool = False, threads_number: int = 2, output_log: bool = False):
+        """
+        Funzione per la generazione della nuvola di punti sparsa.
+        """
         if not Path(cameras_db_path).exists():
             raise ColmapError("Database not found.")
+        
         use_gpu_flag = "1" if use_gpu else "0"
-        self._run_feature_extractor(cameras_db_path, use_gpu_flag, threads_number)
-        self._run_sequential_matcher(cameras_db_path, use_gpu_flag, images_overlap)
-        self._run_mapper(cameras_db_path) 
+        self._run_feature_extractor(cameras_db_path, use_gpu_flag, threads_number, output_log)
+        self._run_sequential_matcher(cameras_db_path, use_gpu_flag, images_overlap, output_log)
+        self._run_mapper(cameras_db_path, output_log) 
 
+    # TODO: da verificare
     def generate_aligned_point_cloud(self, gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA, max_aligner_error: float = 3.0):
-        """Georeferenziazione. Usa il file GPS per scalare e posizionare il modello nel mondo reale. viene usata solo in outdoor mode"""
+        """
+        Georeferenziazione. Usa il file GPS per scalare e posizionare il modello nel mondo reale. viene usata solo in outdoor mode
+        """
         if not Path(gps_txt_path).exists():
             raise ColmapError("GPS data not found.")
+        
         self.aligned_dir.mkdir(parents=True, exist_ok=True)
+
         command = [
             str(self.colmap_exe), "model_aligner",
             "--input_path", str(self.sparse_dir),
@@ -55,8 +63,10 @@ class ColmapManager:
             "--alignment_type", "ecef",
             "--alignment_max_error", str(max_aligner_error)
         ]
+
         try:
-            subprocess.run(command, check=True)
+            subprocess_execution(command,'')
+            success_alert('')
         except Exception:
             raise ColmapError("alignement faild.")
         
@@ -79,18 +89,29 @@ class ColmapManager:
             "--output_type", "COLMAP",
             "--max_image_size", "2000"
         ]
-        subprocess.run(command, check=True)
 
-        model_converter_cmd = [
+        try: 
+            subprocess_execution(command, 'Undistorting images.')
+        except Exception:
+            ColmapError('Undistorting images failed.')
+
+        command = [
             str(self.colmap_exe), "model_converter",
             "--input_path", str(undistorted_dir / "sparse"),
             "--output_path", str(undistorted_dir / "sparse"),
             "--output_type", "TXT"
         ]
-        subprocess.run(model_converter_cmd, check=True)
+
+        try: 
+            subprocess_execution(command, 'Converting binary model.')
+        except Exception:
+            ColmapError('Converting binary model failed')
+        success_alert('Images undistorted')
         
-    def _run_feature_extractor(self, cameras_db_path, use_gpu_flag, threads_number):
-        """Fase 1: Trova i punti chiave nelle immagini usando il database pre-compilato."""
+    def _run_feature_extractor(self, cameras_db_path, use_gpu_flag, threads_number, output_log: bool = False):
+        """
+        Trova i punti chiave nelle immagini usando il database pre-compilato.
+        """
         command = [
             str(self.colmap_exe), "feature_extractor",
             "--database_path", str(cameras_db_path),
@@ -98,52 +119,68 @@ class ColmapManager:
             "--FeatureExtraction.use_gpu", str(use_gpu_flag),
             "--FeatureExtraction.num_threads", str(threads_number)
         ]
-        try:
-            subprocess.run(command, check=True)
-        except Exception:
-            raise ColmapError("Feature extraction failed.")
 
-    def _run_sequential_matcher(self, cameras_db_path, use_gpu_flag, images_overlap: int):
-        """Fase 2: Trova le corrispondenze tra i punti delle foto vicine nel tempo."""
+        try:
+            subprocess_execution(command, 'Extracting image features.', output_log=output_log)
+            success_alert('Features extracted.')
+        except Exception as e:
+            raise ColmapError(f"Feature extraction failed: {e}")
+
+    def _run_sequential_matcher(self, cameras_db_path, use_gpu_flag, images_overlap: int,  output_log: bool = False):
+        """
+        Trova le corrispondenze tra i punti delle foto vicine nel tempo.
+        """
         command = [
             str(self.colmap_exe), "sequential_matcher",
             "--database_path", str(cameras_db_path),
             "--SequentialMatching.overlap", str(images_overlap),
             "--FeatureMatching.use_gpu", str(use_gpu_flag) 
         ]
-        try:
-            subprocess.run(command, check=True)
-        except Exception:
-            raise ColmapError("Sequential matching failed.")
 
-    def _run_mapper(self, cameras_db_path):
-        """Fase 3: Ricostruzione 3D (Structure from Motion). Genera la nuvola di punti e la posizione delle fotocamere nello spazio."""
+        try:
+            subprocess_execution(command, 'Matching features between images.', output_log=output_log)
+            success_alert('Feature matching completed.')
+        except Exception as e:
+            raise ColmapError(f"Sequential matching failed: {e}")
+
+    def _run_mapper(self, cameras_db_path, output_log: bool = False):
+        """
+        Ricostruzione 3D (Structure from Motion). Genera la nuvola di punti e la posizione delle fotocamere nello spazio.
+        """
         self.sparse_dir.mkdir(parents=True, exist_ok=True)
+
         command = [
             str(self.colmap_exe), "mapper",
             "--database_path", str(cameras_db_path),
             "--image_path", str(self.input_images_dir),
             "--output_path", str(self.sparse_dir)
         ]
+
         try:
-            subprocess.run(command, check=True)
-        except Exception:
-            raise ColmapError("Mapping failed.")
+            subprocess_execution(command, 'Generating sparse point cloud.', output_log=output_log)
+            success_alert('Sparse reconstruction completed.')
+        except Exception as e:
+            raise ColmapError(f"Mapping failed: {e}")
 
     def _run_constructor_validation(self):
-        """Funzione che controlla i dati assegnati allistanza di colmap manager."""
+        """
+        Funzione che controlla i dati assegnati allistanza di colmap manager.
+        """
         if not self.colmap_exe.exists():
             raise ColmapError("File colmap.exe not found.")
 
-        if not Path(self.input_images_dir).is_dir():
+        if not self.input_images_dir.is_dir():
             raise ColmapError("Input directory not found.")
 
         try:
-            command = [str(self.colmap_exe), "help"]
-            subprocess.run(command, capture_output=True, text=True, check=True)
-        except (subprocess.CalledProcessError, FileNotFoundError, OSError) as e: 
+            subprocess_execution([str(self.colmap_exe), "help"], 'Validation colmap.exe.', check=False, timeout=5)
+        except Exception:
             raise ColmapError("colmap.exe has crashed.")
     
+        success_alert(f'COLMAP Manager started.')
+
+
+
     # def run_poisson_mesher(self):
     #     print("\n" + "—"*50)
     #     print("🐟 POISSON MESHER (COLMAP): Creazione mesh anti-crash...")
