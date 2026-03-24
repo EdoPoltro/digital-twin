@@ -169,3 +169,7 @@ negli ultimi due giorni ho lavorato 2 ore (weekend) e ho fatto tetst+ refactorig
 
 ora scarico open3d : import open3d as o3d ( libreria python)
 pip install open3d
+
+24 / 03 /2026 
+il problema di reconstructorMesh penso che fosse dovuto alla versione 2.4 quindi lho sostituita con la 2.2 ma non posso testarla su questo pc per problemi di ram pero il codice di errore e cambiato. 
+ho proseguito con il processor manager, ho creato un wrapper per non dover clonare ogni volta il codice e ho aggiunto la pipeline underwater che impiega deisamente piu tempo di calcolo della standard quindi introduco un caricamento 

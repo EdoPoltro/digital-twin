@@ -2,6 +2,8 @@ import itertools
 import subprocess
 import sys
 import time
+from tqdm import tqdm
+from typing import Iterable, Any
 
 # ALERT COLORS
 
@@ -69,3 +71,15 @@ def subprocess_execution(command: list[str], loading_msg: str = DEFAULT_LOADING_
         sys.stdout.flush()
         error_alert('Process interrupted by user.')
         raise
+
+def progress_bar(iterable: Iterable[Any], description: str = DEFAULT_LOADING_MESSAGGE):
+    """
+    Funzione per monitorare il processamento di liste di oggetti
+    """
+    return tqdm(
+        iterable, 
+        desc=str(description), 
+        bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
+        dynamic_ncols=True,
+        leave=False
+    )

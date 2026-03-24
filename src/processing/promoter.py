@@ -29,7 +29,7 @@ def _get_target_dir(promotion_status: ImageStatus) -> Path:
         case ImageStatus.PROCESSED:
             return DATA_PROCESSING_PROCESSED_DIR
     
-def promote_captured_image(captured_image: CapturedImage, target_dir: Path, promotion_status: ImageStatus) -> None:
+def promote_captured_image(captured_image: CapturedImage, target_dir: Path, promotion_status: ImageStatus, move: bool = True) -> None:
     """
     Funzione che gestisce la promozione dello stato di una lista di immagini
 
@@ -40,12 +40,12 @@ def promote_captured_image(captured_image: CapturedImage, target_dir: Path, prom
 
     """
     target_path = target_dir / captured_image.file_name
-    shutil.copy2(captured_image.file_path, target_path)
+    if move: shutil.copy2(captured_image.file_path, target_path)
     captured_image.status = promotion_status
     captured_image.update_file_path(target_dir)
 
     
-def promote_captured_images(captured_images: list[CapturedImage], promotion_status: ImageStatus) -> list[CapturedImage]:
+def promote_captured_images(captured_images: list[CapturedImage], promotion_status: ImageStatus, move: bool = True) -> list[CapturedImage]:
     """
     Funzione che gestisce la promozione dello stato di una lista di immagini e le copia 
 
@@ -70,7 +70,7 @@ def promote_captured_images(captured_images: list[CapturedImage], promotion_stat
     for captured_image in captured_images:
         if captured_image.status in [ImageStatus.ERROR, promotion_status]: continue
         try:
-            promote_captured_image(captured_image, target_dir, promotion_status)
+            promote_captured_image(captured_image, target_dir, promotion_status, move=move)
         except Exception as e:
             captured_image.status = ImageStatus.ERROR
             errors += 1
@@ -82,7 +82,7 @@ def promote_captured_images(captured_images: list[CapturedImage], promotion_stat
 
     if len(output_captured_images) <= DEFAULT_MIN_PHOTO_ERROR: raise PromoterError('Insufficient photos detected.')
 
-    if len(output_captured_images) <= DEFAULT_MIN_PHOTO_WARNING: warning_alert('Less than 15 images detected in the project folder.')
+    if len(output_captured_images) <= DEFAULT_MIN_PHOTO_WARNING: warning_alert(f'Less than {DEFAULT_MIN_PHOTO_WARNING} images detected in the project folder.')
 
     success_alert(f'Promotion to state {promotion_status} completed.')
 

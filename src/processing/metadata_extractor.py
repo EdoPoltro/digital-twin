@@ -146,9 +146,9 @@ def extract_all_raw_captured_images_metadata(raw_captured_images: list[CapturedI
 
     if errors > 0: warning_alert(f'{errors} photos removed.')
 
-    if len(output_raw_captured_images) <= DEFAULT_MIN_PHOTO_WARNING: warning_alert('Less than 15 images detected in the project folder.')
-
     if len(output_raw_captured_images) <= DEFAULT_MIN_PHOTO_ERROR: raise MetadataExtractorError('Insufficient photos detected.')
+
+    if len(output_raw_captured_images) <= DEFAULT_MIN_PHOTO_WARNING: warning_alert(f'Less than {DEFAULT_MIN_PHOTO_WARNING} images detected in the project folder.')
 
     success_alert('Metadata extraction completed.')
 

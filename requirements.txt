@@ -5,3 +5,4 @@ pillow
 pyyaml
 exif
 scipy
+tqdm

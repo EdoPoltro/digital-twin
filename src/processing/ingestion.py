@@ -29,9 +29,9 @@ def get_raw_captured_images(input_dir: Path = DATA_PROCESSING_RAW_DIR):
             raw_captured_image = CapturedImage(str(input_dir / raw_captured_image_name))
             raw_captured_images.append(raw_captured_image)
 
-    if len(raw_captured_images) <= DEFAULT_MIN_PHOTO_WARNING: warning_alert('Less than 15 images detected in the project folder.')
-
     if len(raw_captured_images) <= DEFAULT_MIN_PHOTO_ERROR: raise IngestionError('Insufficient photos detected.')
+
+    if len(raw_captured_images) <= DEFAULT_MIN_PHOTO_WARNING: warning_alert(f'Less than {DEFAULT_MIN_PHOTO_WARNING} images detected in the project folder.')
 
     success_alert('Ingestion completed.')
 

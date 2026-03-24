@@ -100,9 +100,9 @@ def start_camera_metadata_uploading(captured_images: list[CapturedImage], camera
         
     if errors > 0: warning_alert(f'{errors} cameras uploading failed.')
     
-    if len(captured_images) - errors < DEFAULT_MIN_PHOTO_WARNING: warning_alert("Less than 15 cameras metadata uploaded.")
-
     if len(captured_images) - errors < DEFAULT_MIN_PHOTO_ERROR: raise MetadataUploaderError('Insufficient cameras metadata uploaded.')
+
+    if len(captured_images) - errors < DEFAULT_MIN_PHOTO_WARNING: warning_alert(f"Less than {DEFAULT_MIN_PHOTO_WARNING} cameras metadata uploaded.")
 
     success_alert(f'Cameras metadata uploading completed.')
     
@@ -137,9 +137,9 @@ def start_gps_metadata_uploading(captured_images: list[CapturedImage], gps_txt_p
 
     if errors > 0: warning_alert(f'{errors} GPS uploading failed.')
 
-    if len(captured_images) - errors <= DEFAULT_MIN_PHOTO_WARNING: warning_alert('Less than 15 GPS metadata uploaded.')
-
     if len(captured_images) - errors <= DEFAULT_MIN_PHOTO_ERROR: raise MetadataUploaderError('Insufficient GPS metadata uploaded.')
+
+    if len(captured_images) - errors <= DEFAULT_MIN_PHOTO_WARNING: warning_alert(f'Less than {DEFAULT_MIN_PHOTO_WARNING} GPS metadata uploaded.')
 
     write_text_to_file(gps_txt_path, "".join(gps_data_block))
 

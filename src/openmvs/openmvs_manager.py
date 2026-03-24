@@ -105,30 +105,23 @@ class OpenmvsManager:
             "-o", output_model_mesh.name
         ]
 
-        # 🪄 IL TRUCCO: Creiamo un ambiente virtuale "clonato" e limitiamo i thread a 8
-        custom_env = os.environ.copy()
-        custom_env["OMP_NUM_THREADS"] = "8"
-
         try:
-            print(f"🚀 Lancio ReconstructMesh (con OMP_NUM_THREADS=8) da: {self.openmvs_dir}")
-            
+            print(f"🚀 Lancio ReconstructMesh (Versione stabile) da: {self.openmvs_dir}")
+            # Usiamo il subprocess puro forzando la cartella per aggirare il bug dei paths
             result = subprocess.run(
                 command, 
                 cwd=str(self.openmvs_dir),
-                env=custom_env,              # Passiamo l'ambiente modificato!
                 check=True,
                 capture_output=True,
                 text=True
             )
             print(result.stdout)
-            success_alert('Mesh generata con successo!')
+            # QUI PUOI METTERE LA TUA success_alert('Mesh generated.')
             
         except subprocess.CalledProcessError as e:
             print("\n❌ ERRORE INTERNO OPENMVS:")
             print(e.stderr)
             raise OpenmvsError(f'Mesh generation failed with exit code {e.returncode}')
-            
-        self._log_cleanup()
 
     # da COLMAP quindi probabilmente e da sostituire questo comando.
     def texture_mesh_from_colmap(self, input_model: Path = DATA_OPENMVS_DEFAULT_MODEL, input_model_mesh: Path = DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, output_model_texturized: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED):
