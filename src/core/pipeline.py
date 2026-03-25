@@ -1,4 +1,4 @@
-from config import DEFAULT_ENVIRONMENT_CLEAN_UP, DEFAULT_SCAN_MODE
+from config import DATA_OPEN3D_DIR, DEFAULT_SCAN_MODE
 from src.colmap.colmap_manager import ColmapManager
 from src.colmap.metadata_uploader import start_full_metadata_uploading
 from src.models.captured_image import CapturedImage, ImageStatus
@@ -19,7 +19,6 @@ def start_digital_twin_pipeline():
 
         setup_project_environment()
 
-        # aggiungere in input la cartella
         captured_images: list[CapturedImage] = get_raw_captured_images()
         
         captured_images = extract_all_raw_captured_images_metadata(captured_images)
@@ -30,41 +29,19 @@ def start_digital_twin_pipeline():
 
         captured_images = processor.get_captured_images()
 
-        start_full_metadata_uploading(captured_images)
+        if DEFAULT_SCAN_MODE == 'outdoor': start_full_metadata_uploading(captured_images)
 
-        colmap = ColmapManager()
+        colmap = ColmapManager(output_log=True) # output log per test
 
         colmap.start_full_colmap_pipeline(use_gpu=False)
 
-        # colmap.generate_sparse_point_cloud()
+        openmvs = OpenmvsManager(output_log=True) # output log per test
 
-        # colmap.generate_aligned_point_cloud()
-
-        # colmap.generate_undistort_images()
-
-        openmvs = OpenmvsManager()
-
-        openmvs.import_from_colmap()
-
-        openmvs.generate_dense_point_cloud()
-
-        # openmvs.reconstruct_mesh()
-
-        # openmvs.texture_mesh_from_colmap()
+        openmvs.start_full_openmvs_pipeline() 
 
         open3d = Open3dManager()
 
-        open3d.start_full_open3d_pipeline() # da mettere i valori di scala in indoor
-
-        # open3d.import_from_openmvs()
-
-        # open3d.generate_resized_mesh()
-
-        # open3d.run_noise_remover()
-
-        # open3d.run_mesh_exporter()
-
-        # open3d.run_visualizer()
+        open3d.start_full_open3d_pipeline()
         
     except BaseError as e:
         print(e)

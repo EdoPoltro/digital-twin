@@ -136,11 +136,16 @@ class Open3dManager:
         except Exception as e:
             raise Open3dError(f'Exporting failed: {e}')
 
-    def run_visualizer(self) -> None:
+    def run_visualizer(self, mesh: Path = None) -> None:
         """
         Funzione per visualizzare il risultato della mesh
         """
-        if not self.mesh:
+        if mesh != None: 
+            self.mesh = o3d.io.read_triangle_mesh(
+                str(mesh), 
+                enable_post_processing=True
+            )
+        elif not self.mesh:
             raise Open3dError('mesh not found.')
 
         try:
