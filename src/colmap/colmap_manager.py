@@ -27,6 +27,7 @@ class ColmapManager:
         """
         Funzione che controlla i dati assegnati allistanza di colmap manager.
         """
+        print(str(self.colmap_exe))
         if not self.colmap_exe.exists():
             raise ColmapError("File colmap.exe not found.")
 

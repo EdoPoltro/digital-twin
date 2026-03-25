@@ -177,3 +177,7 @@ ho proseguito con il processor manager, ho creato un wrapper per non dover clona
 dopo non pochi problemi ho abortito la barra di caricamento e reconstruct mesh non funziona almeno con il processore percio faccio un tentativo con open3d.
 
 ok ho provato ad usare open3d non e male, non so come sarebbe dovuto venire con openmvs ma quello generato da open3d e molto carino, ovviamente dopo lo texturizzo rimuovo il rumore, ora definisco allora il ciclo: genero con colmap la nuvola sparsa, aligned e le immagini undistorted, poi con open mvs la nuvola densa e poi ricostruisco la mesh con open 3d la texturizzo e tolgo il rumore. 
+
+ho capito che scaricando la versione cuda di openmvs ti obbliga ad usare la gpu non poi fermarlo quindi nel caso crasha la gen. con colmap anche se hai la cuda si puo disabilitre con openmvs no 
+
+stessa cosa per reconstructor mesh crasha perche non mi basta la ram scommetto che se fosse abbastnza no crasherebbe il comando stessa cosa per la versione cuda 

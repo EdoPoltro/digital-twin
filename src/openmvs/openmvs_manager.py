@@ -1,5 +1,6 @@
+import os
 from pathlib import Path
-from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DENSE_DEFAULT_EXE, DATA_OPENMVS_DIR, DATA_OPENMVS_INTERFACE_EXE
+from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DENSE_DEFAULT_EXE, DATA_OPENMVS_DIR, DATA_OPENMVS_INTERFACE_EXE, DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE
 from src.core.exceptions import OpenmvsError
 from src.utils.log_utils import success_alert, subprocess_execution
 
@@ -30,8 +31,7 @@ class OpenmvsManager:
             str(self.openmvs_interface_exe),
             "-i", str(colmap_input_dir),
             "-o", str(output_mvs),
-            "-w", str(self.openmvs_dir),
-            "--image-folder", str(colmap_input_dir / "images")
+            "--image-folder", str(colmap_input_dir / "images"),
         ]
 
         try:
@@ -47,24 +47,23 @@ class OpenmvsManager:
         """
         input_mvs = self.openmvs_dir / "model.mvs"
         output_mvs = self.openmvs_dir / "model_dense.mvs"
+        working_dir = input_mvs.parent
 
         if not input_mvs.exists():
             raise OpenmvsError(f"File model.mvs non trovato in: {input_mvs}")
 
         command = [
             str(self.openmvs_dense_exe), 
-            str(input_mvs),
+            "-i", str(input_mvs),
             "-o", str(output_mvs),
-            "-w", str(self.openmvs_dir),
             "--archive-type", "1",      
-            "--resolution-level", "0",  
+            "--resolution-level", "1",  
             "--number-views", "0",        
-            "--max-threads", "0",      
-            "--number-views-fuse", "2"    
+            "--max-threads", "0",     
         ]
 
         try:
-            subprocess_execution(command, 'Dense point cloud generating.', output_log = self.output_log)
+            subprocess_execution(command, 'Dense point cloud generating.', output_log = self.output_log, cwd=working_dir,)
             success_alert('Dense point cloud generated.')
         except Exception as e:
             raise OpenmvsError(f"Error generating dense point cloud: {e}")
@@ -119,4 +118,40 @@ class OpenmvsManager:
             except Exception as e:
                 print(f"⚠️ Errore imprevisto durante l'eliminazione di {file_path.name}: {e}")
 
+    
+
+
+
+
+
+    # def reconstruct_mesh(self, input_mvs: Path, output_ply: Path):
+    #     """
+    #     Ricostruzione della Mesh ottimizzata per CPU (NoCUDA).
+    #     """
+    #     # Creiamo percorsi assoluti puliti
+    #     abs_input = input_mvs.resolve().as_posix()
+    #     abs_output = output_ply.resolve().as_posix()
         
+    #     command = [
+    #         str(DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE), 
+    #         "-i", abs_input,
+    #         "-o", abs_output,
+            
+    #         # --- MODIFICHE PER SALVARE RAM ---
+    #         "-d", "10.0",                  # Aumentiamo la distanza minima (da 2.5 a 5.0)
+    #         "--min-point-distance", "5.0", # Forza l'unificazione dei punti (meno RAM usata)
+            
+    #         # --- FILTRO ROI (Fondamentale) ---
+    #         "--integrate-only-roi", "1",   # Ignora i punti inutili fuori dall'area d'interesse
+            
+    #         # --- LIMITI ---
+    #         "--target-face-num", "200000", # Puntiamo a 200k (più leggero) invece di 500k
+    #         "--max-threads", "12"          # Riduciamo i thread a 12 (usare 20 thread consuma più RAM)
+    #     ]
+
+    #     try:
+    #         print(f"⚙️  Avvio ReconstructMesh su CPU (20 core)...")
+    #         subprocess_execution(command, 'Reconstructing mesh.', output_log=self.output_log)
+    #         success_alert('Mesh reconstructed successfully.')
+    #     except Exception as e:
+    #         raise OpenmvsError(f'Error during mesh reconstruction: {e}')

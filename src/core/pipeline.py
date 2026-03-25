@@ -1,4 +1,4 @@
-from config import DATA_OPEN3D_DIR, DEFAULT_SCAN_MODE
+from config import DATA_OPEN3D_DIR, DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS, DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, DEFAULT_SCAN_MODE
 from src.colmap.colmap_manager import ColmapManager
 from src.colmap.metadata_uploader import start_full_metadata_uploading
 from src.models.captured_image import CapturedImage, ImageStatus
@@ -17,6 +17,12 @@ def start_digital_twin_pipeline():
         print(f'Digital Twin 3D - Avvio pipline - {DEFAULT_SCAN_MODE.capitalize()} mode')
         print("="*80)
 
+        # openmvs = OpenmvsManager(output_log = True)
+
+        # openmvs.reconstruct_mesh(DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS,DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY)
+
+        # return
+
         setup_project_environment()
 
         captured_images: list[CapturedImage] = get_raw_captured_images()
@@ -33,7 +39,7 @@ def start_digital_twin_pipeline():
 
         colmap = ColmapManager(output_log=True) # output log per test
 
-        colmap.start_full_colmap_pipeline(use_gpu=False)
+        colmap.start_full_colmap_pipeline(use_gpu=True)
 
         openmvs = OpenmvsManager(output_log=True) # output log per test
 
