@@ -181,3 +181,7 @@ ok ho provato ad usare open3d non e male, non so come sarebbe dovuto venire con 
 ho capito che scaricando la versione cuda di openmvs ti obbliga ad usare la gpu non poi fermarlo quindi nel caso crasha la gen. con colmap anche se hai la cuda si puo disabilitre con openmvs no 
 
 stessa cosa per reconstructor mesh crasha perche non mi basta la ram scommetto che se fosse abbastnza no crasherebbe il comando stessa cosa per la versione cuda 
+
+devo specificare in openmvs la cartella dove lavoro perche senno non capisce
+
+comunque crasha la versione cpu perche il comando era sbagliato

@@ -2,7 +2,7 @@ from typing import Literal
 import numpy as np
 import open3d as o3d
 from pathlib import Path
-from config import DATA_OPEN3D_EXPORTED_MODEL, DATA_OPEN3D_MESH_MODEL, DATA_OPENMVS_DEFAULT_MODEL_DENSE_PLY, DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, DEFAULT_SCAN_MODE
+from config import DATA_OPEN3D_EXPORTED_MODEL, DATA_OPEN3D_MESH_MODEL, DATA_OPENMVS_DEFAULT_MODEL_DENSE_PLY, DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, DEFAULT_SCAN_MODE
 from src.core.exceptions import Open3dError
 from src.utils.log_utils import success_alert
 
@@ -24,7 +24,7 @@ class Open3dManager:
         self.run_mesh_exporter(output_model_path)
         self.run_visualizer()
 
-    def import_from_openmvs(self, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED) -> None:
+    def import_from_openmvs(self, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY) -> None:
         """
         Funzione che carica la mesh texturizzata generata da OpenMVS
         """

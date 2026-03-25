@@ -1,4 +1,4 @@
-from config import DATA_OPEN3D_DIR, DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS, DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, DEFAULT_SCAN_MODE
+from config import DATA_OPEN3D_DIR, DATA_OPENMVS_DEFAULT_MODEL_DENSE_MVS, DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS, DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, DEFAULT_SCAN_MODE
 from src.colmap.colmap_manager import ColmapManager
 from src.colmap.metadata_uploader import start_full_metadata_uploading
 from src.models.captured_image import CapturedImage, ImageStatus
@@ -18,10 +18,12 @@ def start_digital_twin_pipeline():
         print("="*80)
 
         # openmvs = OpenmvsManager(output_log = True)
+        
+        # openmvs.start_full_openmvs_pipeline()
 
-        # openmvs.reconstruct_mesh(DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS,DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY)
+        # openmvs.reconstruct_mesh(DATA_OPENMVS_DEFAULT_MODEL_DENSE_MVS,DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY)
 
-        # return
+        # da vedere la texturizzazione tramite openmvs e open3d
 
         setup_project_environment()
 
