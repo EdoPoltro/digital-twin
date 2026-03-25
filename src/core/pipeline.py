@@ -17,7 +17,7 @@ def start_digital_twin_pipeline():
         print(f'Digital Twin 3D - Avvio pipline - {DEFAULT_SCAN_MODE.capitalize()} mode')
         print("="*80)
 
-        setup_project_environment(DEFAULT_ENVIRONMENT_CLEAN_UP)
+        setup_project_environment()
 
         # aggiungere in input la cartella
         captured_images: list[CapturedImage] = get_raw_captured_images()

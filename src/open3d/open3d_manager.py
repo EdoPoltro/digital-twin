@@ -2,7 +2,7 @@ from typing import Literal
 import numpy as np
 import open3d as o3d
 from pathlib import Path
-from config import DATA_OPEN3D_EXPORTED_MODEL, DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, DEFAULT_SCAN_MODE
+from config import DATA_OPEN3D_EXPORTED_MODEL, DATA_OPEN3D_MESH_MODEL, DATA_OPENMVS_DEFAULT_MODEL_DENSE_PLY, DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, DEFAULT_SCAN_MODE
 from src.core.exceptions import Open3dError
 from src.utils.log_utils import success_alert
 
@@ -13,11 +13,12 @@ class Open3dManager:
         self.mesh = None
         o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Error)
 
-    def start_full_open3d_pipeline(self, scale_real_distance: float = 1, scale_virtual_distance: float = 1, output_model_path: Path = DATA_OPEN3D_EXPORTED_MODEL, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED):
+    def start_full_open3d_pipeline(self, scale_real_distance: float = 1, scale_virtual_distance: float = 1, output_model_path: Path = DATA_OPEN3D_EXPORTED_MODEL, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, input_dense_path: Path = DATA_OPENMVS_DEFAULT_MODEL_DENSE_PLY, output_mesh_path: Path = DATA_OPEN3D_MESH_MODEL):
         """
         funzione che gestisce la pipeline di Open3D.
         """
-        self.import_from_openmvs(model_path)
+        # self.import_from_openmvs(model_path)
+        self.generate_mesh_from_openmvs(input_dense_path, output_mesh_path)
         if self.scan_mode == 'indoor': self.generate_resized_mesh(scale_real_distance, scale_virtual_distance)
         self.run_noise_remover()
         self.run_mesh_exporter(output_model_path)
@@ -38,6 +39,33 @@ class Open3dManager:
             success_alert('OpenMVS model imported.')
         except Exception as e:
             raise Open3dError(f'Failed to import model from OpenMVS: {e}')
+
+    def generate_mesh_from_openmvs(self, input_dense_path: Path = DATA_OPENMVS_DEFAULT_MODEL_DENSE_PLY, output_mesh_path: Path = DATA_OPEN3D_MESH_MODEL):
+        """
+        Funzione che trasforma una nuvola densa in una mesh tramite l'algoritmo di poisson.
+        """
+        if not input_dense_path.exists():
+            raise Open3dError(f"Point cloud file not found: {input_dense_path}.")
+        
+        try:
+            dense = o3d.io.read_point_cloud(str(input_dense_path))
+            
+            dense.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+
+            dense.orient_normals_consistent_tangent_plane(10)
+
+            mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(dense, depth=9)
+
+            densities = np.asarray(densities)
+            vertices_to_remove = densities < np.quantile(densities, 0.05)
+            mesh.remove_vertices_by_mask(vertices_to_remove)
+
+            self.mesh = mesh
+            o3d.io.write_triangle_mesh(str(output_mesh_path), self.mesh)
+            
+            success_alert(f'Mesh generated.')
+        except Exception as e:
+            raise Open3dError(f"Mesh reconstruction failed: {e}")
 
     def generate_resized_mesh(self, real_distance: float = 1, virtual_distance: float = 1):
         """
@@ -126,4 +154,3 @@ class Open3dManager:
             )
         except Exception as e:
             raise Open3dError(f'Failed to visualize model: {e}')
-

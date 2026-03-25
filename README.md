@@ -173,3 +173,7 @@ pip install open3d
 24 / 03 /2026 
 il problema di reconstructorMesh penso che fosse dovuto alla versione 2.4 quindi lho sostituita con la 2.2 ma non posso testarla su questo pc per problemi di ram pero il codice di errore e cambiato. 
 ho proseguito con il processor manager, ho creato un wrapper per non dover clonare ogni volta il codice e ho aggiunto la pipeline underwater che impiega deisamente piu tempo di calcolo della standard quindi introduco un caricamento 
+
+dopo non pochi problemi ho abortito la barra di caricamento e reconstruct mesh non funziona almeno con il processore percio faccio un tentativo con open3d.
+
+ok ho provato ad usare open3d non e male, non so come sarebbe dovuto venire con openmvs ma quello generato da open3d e molto carino, ovviamente dopo lo texturizzo rimuovo il rumore, ora definisco allora il ciclo: genero con colmap la nuvola sparsa, aligned e le immagini undistorted, poi con open mvs la nuvola densa e poi ricostruisco la mesh con open 3d la texturizzo e tolgo il rumore. 

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from config import DEFAULT_ENVIRONMENT_CLEAN_UP
 from src.core.exceptions import EnvSetupError, FileAccessError, FileNotFoundError
 import shutil
 import sqlite3
@@ -29,7 +30,7 @@ def open_json(file_path: Path) -> dict:
     except (json.JSONDecodeError, PermissionError) as e:
         raise FileAccessError(file_path, e)
     
-def setup_project_environment(directories: list[Path]):
+def setup_project_environment(directories: list[Path] = DEFAULT_ENVIRONMENT_CLEAN_UP):
     for dir in directories:
         if dir.exists():
             try:

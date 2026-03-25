@@ -1,22 +1,20 @@
-import os
 from pathlib import Path
-import subprocess
-from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DEFAULT_MODEL, DATA_OPENMVS_DEFAULT_MODEL_DENSE, DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS, DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, DATA_OPENMVS_DENSE_DEFAULT_EXE, DATA_OPENMVS_DIR, DATA_OPENMVS_INTERFACE_EXE, DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE, DATA_OPENMVS_MESH_TEXTURIZER_DEFAULT_EXE
+from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DENSE_DEFAULT_EXE, DATA_OPENMVS_DIR, DATA_OPENMVS_INTERFACE_EXE
 from src.core.exceptions import OpenmvsError
-from src.utils.log_utils import error_alert, success_alert, subprocess_execution
+from src.utils.log_utils import success_alert, subprocess_execution
 
 class OpenmvsManager:
-    def __init__(self, openmvs_dense_exe: Path = DATA_OPENMVS_DENSE_DEFAULT_EXE, openmvs_mesh_reconstructor_exe: Path = DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE, openmvs_interface_exe: Path = DATA_OPENMVS_INTERFACE_EXE, openmvs_mesh_texturizer_exe: Path = DATA_OPENMVS_MESH_TEXTURIZER_DEFAULT_EXE , openmvs_dir: Path = DATA_OPENMVS_DIR):
+    def __init__(self, openmvs_dense_exe: Path = DATA_OPENMVS_DENSE_DEFAULT_EXE, openmvs_interface_exe: Path = DATA_OPENMVS_INTERFACE_EXE, openmvs_dir: Path = DATA_OPENMVS_DIR, output_log: bool = True):
         self.openmvs_dense_exe = openmvs_dense_exe
-        self.openmvs_mesh_reconstructor_exe = openmvs_mesh_reconstructor_exe
-        self.openmvs_mesh_texturizer_exe = openmvs_mesh_texturizer_exe
         self.openmvs_interface_exe = openmvs_interface_exe
         self.openmvs_dir = openmvs_dir
+        self.output_log = output_log
 
         self._run_constructor_validation()
 
-    def start_full_openmvs_pipeline(self):
-        pass
+    def start_full_openmvs_pipeline(self, colmap_input_dir: Path = DATA_COLMAP_UNDISTORTED_DIR):
+        self.import_from_colmap(colmap_input_dir)
+        self.generate_dense_point_cloud()
 
     def import_from_colmap(self, colmap_input_dir: Path = DATA_COLMAP_UNDISTORTED_DIR):
         """
@@ -37,9 +35,9 @@ class OpenmvsManager:
         ]
 
         try:
-            subprocess_execution(command, "Importing COLMAP model.")
+            subprocess_execution(command, "Importing COLMAP model.", output_log = self.output_log)
             success_alert('COLMAP model imported.')
-        except:
+        except Exception as e:
             raise OpenmvsError(f'Failed to import model from COLMAP: {e}')
         self._log_cleanup()
 
@@ -59,91 +57,19 @@ class OpenmvsManager:
             "-o", str(output_mvs),
             "-w", str(self.openmvs_dir),
             "--archive-type", "1",      
-            "--resolution-level", "2", # risoluzione    
+            "--resolution-level", "0",  
             "--number-views", "0",        
-            "--max-threads", "0"          
+            "--max-threads", "0",      
+            "--number-views-fuse", "2"    
         ]
 
         try:
-            subprocess_execution(command, 'Dense point cloud generating.')
+            subprocess_execution(command, 'Dense point cloud generating.', output_log = self.output_log)
             success_alert('Dense point cloud generated.')
         except Exception as e:
             raise OpenmvsError(f"Error generating dense point cloud: {e}")
         self._log_cleanup()
-
-    def clean_point_cloud(self):
-        pass
-
-    def reconstruct_mesh(self, input_model_dense: Path = DATA_OPENMVS_DEFAULT_MODEL_DENSE, output_model_mesh: Path = DATA_OPENMVS_DEFAULT_MODEL_MESH_MVS):
-        """
-        Trasforma la nuvola di punti densa in una mesh di triangoli.
-        """
-
-        # input_name = input_model_dense.name
-        # output_name = output_model_mesh.name
-
-        # command = [
-        #     str(self.openmvs_mesh_reconstructor_exe),
-        #     str(input_name),
-        #     "-o", str(output_name),
-        #     "-w", str(self.openmvs_dir)
-        # ]
-
-        # try:
-        #     subprocess_execution(command, 'Generating mesh.')
-        #     success_alert('Mesh generated.')
-        # except Exception as e:
-        #     raise OpenmvsError(f'Mesh generation failed: {e}')
-        # self._log_cleanup()
-
-        """
-        Trasforma la nuvola di punti densa in una mesh di triangoli.
-        """
-        command = [
-            str(self.openmvs_mesh_reconstructor_exe),
-            input_model_dense.name,
-            "-o", output_model_mesh.name
-        ]
-
-        try:
-            print(f"🚀 Lancio ReconstructMesh (Versione stabile) da: {self.openmvs_dir}")
-            # Usiamo il subprocess puro forzando la cartella per aggirare il bug dei paths
-            result = subprocess.run(
-                command, 
-                cwd=str(self.openmvs_dir),
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            print(result.stdout)
-            # QUI PUOI METTERE LA TUA success_alert('Mesh generated.')
-            
-        except subprocess.CalledProcessError as e:
-            print("\n❌ ERRORE INTERNO OPENMVS:")
-            print(e.stderr)
-            raise OpenmvsError(f'Mesh generation failed with exit code {e.returncode}')
-
-    # da COLMAP quindi probabilmente e da sostituire questo comando.
-    def texture_mesh_from_colmap(self, input_model: Path = DATA_OPENMVS_DEFAULT_MODEL, input_model_mesh: Path = DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY, output_model_texturized: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED):
-        """
-        Funzione che applica le texture delle foto originali sulla mesh.
-        """
-        command = [
-            str(self.openmvs_mesh_texturizer_exe),
-            str(input_model),
-            "--mesh-file", str(input_model_mesh),
-            "-o", str(output_model_texturized),
-            "-w", str(self.openmvs_dir),
-            "--export-type", "obj"
-        ]
-
-        try:
-            subprocess_execution(command, 'Texturing mesh.')
-            success_alert('Mesh textured.')
-        except Exception as e:
-            raise OpenmvsError(f'Mesh texturing failed: {e}')
-        self._log_cleanup()
-
+        
     def _run_constructor_validation(self):
         """
         Funzione che controlla i dati assegnati allistanza di openMVS manager.
@@ -151,12 +77,6 @@ class OpenmvsManager:
         if not self.openmvs_dense_exe.exists():
             raise OpenmvsError("File DensifyPointCloud.exe not found.")
         
-        if not self.openmvs_mesh_reconstructor_exe.exists():
-            raise OpenmvsError("File ConstructMesh.exe not found.")
-        
-        if not self.openmvs_mesh_texturizer_exe.exists():
-            raise OpenmvsError("File TextureMesh.exe not found.")
-    
         if not self.openmvs_interface_exe.exists():
             raise OpenmvsError("File InterfaceCOLMAP.exe not found.")
         
@@ -164,16 +84,6 @@ class OpenmvsManager:
             subprocess_execution([str(self.openmvs_dense_exe), "--help", "-v", "0",], check=False, timeout=5)
         except Exception:
             raise OpenmvsError(f"DensifyPointCloud.exe has crashed.")
-        
-        try:
-            subprocess_execution([str(self.openmvs_mesh_reconstructor_exe), "--help", "-v", "0",], check=False, timeout=5)
-        except Exception:
-            raise OpenmvsError(f"ConstructorMesh.exe has crashed.")
-        
-        try:
-            subprocess_execution([str(self.openmvs_mesh_texturizer_exe), "--help", "-v", "0",], check=False, timeout=5)
-        except Exception:
-            raise OpenmvsError(f"TextureMesh.exe has crashed.")
         
         try:
             subprocess_execution([str(self.openmvs_interface_exe), "--help", "-v", "0",], check=False, timeout=5)
