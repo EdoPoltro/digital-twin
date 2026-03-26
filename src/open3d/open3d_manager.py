@@ -13,32 +13,15 @@ class Open3dManager:
         self.mesh = None
         o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Error)
 
-    def start_full_open3d_pipeline(self, scale_real_distance: float = 1, scale_virtual_distance: float = 1, output_model_path: Path = DATA_OPEN3D_EXPORTED_MODEL, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_TEXTURED, input_dense_path: Path = DATA_OPENMVS_DEFAULT_MODEL_DENSE_PLY, output_mesh_path: Path = DATA_OPEN3D_MESH_MODEL):
+    def start_full_open3d_pipeline(self, scale_real_distance: float = 1, scale_virtual_distance: float = 1, output_model_path: Path = DATA_OPEN3D_EXPORTED_MODEL, input_dense_path: Path = DATA_OPENMVS_DEFAULT_MODEL_DENSE_PLY, output_mesh_path: Path = DATA_OPEN3D_MESH_MODEL):
         """
         funzione che gestisce la pipeline di Open3D.
         """
-        # self.import_from_openmvs(model_path)
         self.generate_mesh_from_openmvs(input_dense_path, output_mesh_path)
         if self.scan_mode == 'indoor': self.generate_resized_mesh(scale_real_distance, scale_virtual_distance)
         self.run_noise_remover()
         self.run_mesh_exporter(output_model_path)
         self.run_visualizer()
-
-    def import_from_openmvs(self, model_path: Path = DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY) -> None:
-        """
-        Funzione che carica la mesh texturizzata generata da OpenMVS
-        """
-        if not model_path.exists():
-            raise Open3dError('Failed to import model from OpenMVS: File not exists.')
-        
-        try:
-            self.mesh = o3d.io.read_triangle_mesh(
-                str(model_path), 
-                enable_post_processing=True
-            )
-            success_alert('OpenMVS model imported.')
-        except Exception as e:
-            raise Open3dError(f'Failed to import model from OpenMVS: {e}')
 
     def generate_mesh_from_openmvs(self, input_dense_path: Path = DATA_OPENMVS_DEFAULT_MODEL_DENSE_PLY, output_mesh_path: Path = DATA_OPEN3D_MESH_MODEL):
         """

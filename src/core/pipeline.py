@@ -17,14 +17,6 @@ def start_digital_twin_pipeline():
         print(f'Digital Twin 3D - Avvio pipline - {DEFAULT_SCAN_MODE.capitalize()} mode')
         print("="*80)
 
-        # openmvs = OpenmvsManager(output_log = True)
-        
-        # openmvs.start_full_openmvs_pipeline()
-
-        # openmvs.reconstruct_mesh(DATA_OPENMVS_DEFAULT_MODEL_DENSE_MVS,DATA_OPENMVS_DEFAULT_MODEL_MESH_PLY)
-
-        # da vedere la texturizzazione tramite openmvs e open3d
-
         setup_project_environment()
 
         captured_images: list[CapturedImage] = get_raw_captured_images()
@@ -41,7 +33,7 @@ def start_digital_twin_pipeline():
 
         colmap = ColmapManager(output_log=True) # output log per test
 
-        colmap.start_full_colmap_pipeline(use_gpu=True)
+        colmap.start_full_colmap_pipeline(use_gpu=False)
 
         openmvs = OpenmvsManager(output_log=True) # output log per test
 

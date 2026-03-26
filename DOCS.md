@@ -81,6 +81,10 @@ Se il programma è in mpdalita indoor allora effettuerà con open3d la fase di s
 ```
 Una volta caricate le immagini scattate nella cartella /digital_twin/data/processing/raw il programma seguirà la pipeline associata alla modalita di scan e otterrà una mesh visualizzabile da open3d.
 
+In fase di sviluppo ho notato che ci sono 2 pipeline possibili per la generazione della mesh texturizzata:
+
+
+
 ## Shooting & Asset Acquisition
 
 ## System Requirements & Performance

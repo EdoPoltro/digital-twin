@@ -184,4 +184,10 @@ stessa cosa per reconstructor mesh crasha perche non mi basta la ram scommetto c
 
 devo specificare in openmvs la cartella dove lavoro perche senno non capisce
 
-comunque crasha la versione cpu perche il comando era sbagliato
+comunque crasha la versione cpu perche il comando era sbagliato.
+
+Ho notato che spesso crasha per colpa dellimportazione di colmap in openmvs, perche se la sparse non e appena stata generata vengono salvati dei percorsi relativi nel model che possono venire mal interpretati dalla gen della dense. quindi non riguarda cpu o altro ma e prioprio un errore perche le immagini non vengono riconosciute perche le cerca sul desktop e non nel progetto
+
+open 3d veloce e meno risorse
+
+open mvs lento piu preciso e qualitativo 
