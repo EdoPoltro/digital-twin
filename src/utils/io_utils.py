@@ -1,12 +1,12 @@
 import json
 from pathlib import Path
 from config import DEFAULT_ENVIRONMENT_CLEAN_UP
-from src.core.exceptions import EnvSetupError, FileAccessError, FileNotFoundError
+from src.core.exceptions import EnvSetupError, UtilsError
 import shutil
 import sqlite3
 from pathlib import Path
 
-from src.utils.log_utils import success_alert
+from src.utils.log_utils import success_alert, warning_alert
 
 def open_json(file_path: Path) -> dict:
     """
@@ -16,21 +16,23 @@ def open_json(file_path: Path) -> dict:
         file_path (Path): percorso del file
 
     Raises:
-        FileNotFoundError
-        FileAccessError
+        UtilsError
 
     Returns:
         dict
     """
     if not file_path.exists():
-        raise FileNotFoundError(file_path)
+        raise UtilsError(f'File not found: {file_path}')
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             return json.load(file)
     except (json.JSONDecodeError, PermissionError) as e:
-        raise FileAccessError(file_path, e)
+        raise UtilsError(f'Access denied: {file_path}')
     
 def setup_project_environment(directories: list[Path] = DEFAULT_ENVIRONMENT_CLEAN_UP):
+    """
+    Funzione per la pulizia delle cartelle dei risultati lungo la pipeline.
+    """
     for dir in directories:
         if dir.exists():
             try:
@@ -70,3 +72,23 @@ def init_sqlite_connection(db_path: Path) -> sqlite3.Connection:
         db_path.unlink()
     
     return sqlite3.connect(db_path)
+
+def folders_counter(path: Path) -> int:
+    """
+    Funzione per contare quante sottocartelle ha la cartella al percorso path.
+
+    Args:
+        path (Path): cartella di input
+
+    Raises:
+        UtilsError
+
+    Returns:
+        int
+    """
+    if not path.exists():
+        raise UtilsError('Folder not found.')
+    
+    folders = len([f for f in path.iterdir() if f.is_dir()])
+    
+    return folders

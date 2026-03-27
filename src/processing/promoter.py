@@ -2,7 +2,7 @@
 from pathlib import Path
 from config import DATA_PROCESSING_INTERIM_DIR, DATA_PROCESSING_PROCESSED_DIR, DATA_PROCESSING_RAW_DIR, DEFAULT_MIN_PHOTO_ERROR, DEFAULT_MIN_PHOTO_WARNING
 from src.models.captured_image import CapturedImage, ImageStatus
-from src.core.exceptions import EmptyDatasetError,ImageCopyError, PromoterError
+from src.core.exceptions import PromoterError
 import shutil
 from pathlib import Path
 

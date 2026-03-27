@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
-from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_DENSE_DEFAULT_EXE, DATA_OPENMVS_DIR, DATA_OPENMVS_INTERFACE_EXE, DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE
+from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, ENGINES_OPENMVS_DENSE_EXE, DATA_OPENMVS_DIR, ENGINES_OPENMVS_INTERFACE_EXE, DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE
 from src.core.exceptions import OpenmvsError
 from src.utils.log_utils import success_alert, subprocess_execution
 
 class OpenmvsManager:
-    def __init__(self, openmvs_dense_exe: Path = DATA_OPENMVS_DENSE_DEFAULT_EXE, openmvs_interface_exe: Path = DATA_OPENMVS_INTERFACE_EXE, openmvs_dir: Path = DATA_OPENMVS_DIR, output_log: bool = True):
+    def __init__(self, openmvs_dense_exe: Path = ENGINES_OPENMVS_DENSE_EXE, openmvs_interface_exe: Path = ENGINES_OPENMVS_INTERFACE_EXE, openmvs_dir: Path = DATA_OPENMVS_DIR, output_log: bool = True):
         self.openmvs_dense_exe = openmvs_dense_exe
         self.openmvs_interface_exe = openmvs_interface_exe
         self.openmvs_dir = openmvs_dir
