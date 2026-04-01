@@ -23,6 +23,11 @@ class EnvSetupError(BaseError):
         suggestion = "Check function setup_project_environment() in io_utils.pys."
         super().__init__(exception_message, suggestion, exception_type)
 
+class VideoExtractorError(BaseError):
+    def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
+        suggestion = "Check file video_extractor_manager.py."
+        super().__init__(exception_message, suggestion, exception_type)
+
 class UtilsError(BaseError):
     def __init__(self, exception_message: str, exception_type: str = CLR_ERROR):
         suggestion = "Check utils functions."

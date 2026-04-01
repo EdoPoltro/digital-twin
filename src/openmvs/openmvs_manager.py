@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, ENGINES_OPENMVS_DENSE_EXE, DATA_OPENMVS_DIR, ENGINES_OPENMVS_INTERFACE_EXE, DATA_OPENMVS_MESH_RECONSTRUCTOR_DEFAULT_EXE
+from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_ALIGNED_MVS, DATA_OPENMVS_DENSE_MVS, ENGINES_OPENMVS_DENSE_EXE, DATA_OPENMVS_DIR, ENGINES_OPENMVS_INTERFACE_EXE
 from src.core.exceptions import OpenmvsError
 from src.utils.log_utils import success_alert, subprocess_execution
 
@@ -13,11 +13,13 @@ class OpenmvsManager:
 
         self._run_constructor_validation()
 
+    # da valutare 
     def start_full_openmvs_pipeline(self, colmap_input_dir: Path = DATA_COLMAP_UNDISTORTED_DIR):
-        self.import_from_colmap(colmap_input_dir)
-        self.generate_dense_point_cloud()
+        pass
+        # self.import_from_colmap(colmap_input_dir)
+        # self.generate_dense_point_cloud()
 
-    def import_from_colmap(self, colmap_input_dir: Path = DATA_COLMAP_UNDISTORTED_DIR):
+    def import_from_colmap(self, colmap_input_dir: Path = DATA_COLMAP_UNDISTORTED_DIR, aligned_mvs: Path = DATA_OPENMVS_ALIGNED_MVS):
         """
         Converte le immagini senza distorzione di COLMAP nel formato .mvs.
 
@@ -25,12 +27,11 @@ class OpenmvsManager:
             colmap_input_dir (Path)
         """
         self.openmvs_dir.mkdir(parents=True, exist_ok=True)
-        output_mvs = self.openmvs_dir / "model.mvs"
 
         command = [
             str(self.openmvs_interface_exe),
             "-i", str(colmap_input_dir),
-            "-o", str(output_mvs),
+            "-o", str(aligned_mvs),
             "--image-folder", str(colmap_input_dir / "images"),
         ]
 
@@ -41,21 +42,19 @@ class OpenmvsManager:
             raise OpenmvsError(f'Failed to import model from COLMAP: {e}')
         self._log_cleanup()
 
-    def generate_dense_point_cloud(self):
+    def generate_dense_point_cloud(self, aligned_mvs: Path = DATA_OPENMVS_ALIGNED_MVS, dense_mvs: Path = DATA_OPENMVS_DENSE_MVS):
         """
         Trasforma la nuvola sparsa in una nuvola densa (milioni di punti).
         """
-        input_mvs = self.openmvs_dir / "model.mvs"
-        output_mvs = self.openmvs_dir / "model_dense.mvs"
-        working_dir = input_mvs.parent
+        working_dir = aligned_mvs.parent
 
-        if not input_mvs.exists():
-            raise OpenmvsError(f"File model.mvs non trovato in: {input_mvs}")
+        if not aligned_mvs.exists():
+            raise OpenmvsError(f"File model.mvs non trovato in: {aligned_mvs}")
 
         command = [
             str(self.openmvs_dense_exe), 
-            "-i", str(input_mvs),
-            "-o", str(output_mvs),
+            "-i", str(aligned_mvs),
+            "-o", str(dense_mvs),
             "--number-views-fuse", "1",      
             "--resolution-level", "1",  
             "--number-views", "0",        
@@ -78,16 +77,6 @@ class OpenmvsManager:
         
         if not self.openmvs_interface_exe.exists():
             raise OpenmvsError("File InterfaceCOLMAP.exe not found.")
-        
-        try:
-            subprocess_execution([str(self.openmvs_dense_exe), "--help", "-v", "0",], check=False, timeout=5)
-        except Exception:
-            raise OpenmvsError(f"DensifyPointCloud.exe has crashed.")
-        
-        try:
-            subprocess_execution([str(self.openmvs_interface_exe), "--help", "-v", "0",], check=False, timeout=5)
-        except Exception:
-            raise OpenmvsError(f"InterfaceCOLMAP.exe has crashed.")
         
         success_alert(f'OpenMVS Manager started.')
         self._log_cleanup()

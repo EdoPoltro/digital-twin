@@ -1,4 +1,4 @@
-from config import DATA_OPEN3D_DIR, DATA_OPENMVS_DENSE_MVS, DATA_OPENMVS_ALIGNED_MVS_MESH_MVS, DATA_OPENMVS_ALIGNED_MVS_MESH_PLY, DEFAULT_SCAN_MODE
+from config import DEFAULT_SCAN_MODE
 from src.colmap.colmap_manager import ColmapManager
 from src.colmap.metadata_uploader import start_full_metadata_uploading
 from src.models.captured_image import CapturedImage, ImageStatus

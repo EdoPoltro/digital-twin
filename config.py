@@ -1,7 +1,6 @@
 from pathlib import Path
 import platform
 import shutil
-from src.utils.log_utils import warning_alert
 
 # NUOVA ORGANIZZAZIONE
 
@@ -23,7 +22,7 @@ else:
     if SYSTEM_COLMAP:
         ENGINES_COLMAP_EXE = SYSTEM_COLMAP
     else:
-        warning_alert('Colmap linux installation not found, alternative path loded.')
+        print('Colmap linux installation not found, alternative path loded.')
         ENGINES_COLMAP_EXE = ENGINES_COLMAP_DIR / 'bin' / 'colmap'
 
 ENGINES_OPENMVS_DIR = ENGINES_DIR / 'openmvs'
@@ -48,6 +47,8 @@ SRC_CORE_DIR = SRC_DIR / 'core'
 DATA_DIR = BASE_DIR / 'data'
 
 DATA_PROCESSING_DIR = DATA_DIR / 'processing'
+DATA_PROCESSING_VIDEO_DIR = DATA_PROCESSING_DIR / 'video'
+DATA_PROCESSING_VIDEO_PATH = DATA_PROCESSING_VIDEO_DIR / 'video.mov'
 DATA_PROCESSING_RAW_DIR = DATA_PROCESSING_DIR / 'raw'
 DATA_PROCESSING_INTERIM_DIR = DATA_PROCESSING_DIR / 'interim'
 DATA_PROCESSING_PROCESSED_DIR = DATA_PROCESSING_DIR / 'processed'
@@ -70,13 +71,14 @@ DATA_OPEN3D_MESH_OBJ = DATA_OPEN3D_DIR / 'mesh.obj'
 
 # ENVIRONMENT SETUP
 
-DEFAULT_ENVIRONMENT_CLEAN_UP = [DATA_PROCESSING_INTERIM_DIR, DATA_PROCESSING_PROCESSED_DIR, DATA_COLMAP_DIR, DATA_OPEN3D_DIR, DATA_OPENMVS_DIR]
+DEFAULT_ENVIRONMENT_CLEAN_UP = [DATA_PROCESSING_INTERIM_DIR, DATA_PROCESSING_PROCESSED_DIR, DATA_COLMAP_DIR, DATA_OPEN3D_DIR, DATA_OPENMVS_DIR, DATA_PROCESSING_RAW_DIR]
 
 # EXTENSIONS
 
 SUPPORTED_INPUT_FORMATS = ('.jpg', '.jpeg', '.png', '.tiff', '.tif')
 DEFAULT_PROCESSED_OUTPUT_FORMAT = '.png'
 SUPPORTED_3D_FORMATS = ('.ply', '.obj', '.stl')
+SUPPORTED_VIDEO_FORMATS = ('.mp4', '.mov', '.avi', '.mkv', '.webm')
 
 # FLAGS
 
@@ -84,5 +86,12 @@ DEFAULT_SCAN_MODE = 'indoor' # 'indoor' | 'outdoor'
 DEFAULT_ENVIRONMENT_MODE = 'standard' # 'standard' | 'underwater'
 DEFAULT_MIN_PHOTO_ERROR = 5
 DEFAULT_MIN_PHOTO_WARNING = 15
+
+# VIDEO PARAMS
+
+VIDEO_MIN_SHARPNESS = 30.0       # nitidezza per tenere il frame, più alta più è selettivo
+VIDEO_MIN_DIFFERENCE = 0.25      # diversificazione delle foto
+VIDEO_SAMPLE_INTERVAL = 0.5      # ogni quanto prende il frame
+VIDEO_MAX_FRAMES = 200           # numero massimo di frame estratti
 
 

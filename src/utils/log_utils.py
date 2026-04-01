@@ -4,6 +4,9 @@ import sys
 import time
 from tqdm import tqdm
 from typing import Iterable, Any
+import itertools
+
+from config import IS_WINDOWS
 
 # ALERT COLORS
 
@@ -31,8 +34,8 @@ def subprocess_execution(command: list[str], loading_msg: str = DEFAULT_LOADING_
             kwargs['stdout'] = subprocess.DEVNULL
         if 'stderr' not in kwargs:
             kwargs['stderr'] = subprocess.DEVNULL
-        if 'creationflags' not in kwargs:
-            kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+        if IS_WINDOWS and 'creationflags' not in kwargs:
+            kwargs['creationflags'] = 0x08000000
 
     process = subprocess.Popen(command, **kwargs)
 

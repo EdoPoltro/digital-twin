@@ -34,12 +34,6 @@ class ColmapManager:
         if not self.input_images_dir.is_dir():
             raise ColmapError("Input directory not found.")
 
-        try:
-            subprocess_execution([str(self.colmap_exe), "--help"], 'Validation colmap.exe.', check=False, timeout=10)
-            success_alert(f'COLMAP Manager started.')
-        except Exception:
-            raise ColmapError("colmap.exe has crashed.") 
-
     def start_full_colmap_pipeline(self, cameras_db_path: Path = DATA_COLMAP_DEFAULT_CAMERAS_DATABASE, use_gpu: bool = True, gps_txt_path: Path = DATA_COLMAP_DEFAULT_GPS_DATA, undistorted_dir: Path = DATA_COLMAP_UNDISTORTED_DIR):
         """
         Funzione per gestire la pipeline di COLMAP.
@@ -170,8 +164,7 @@ class ColmapManager:
             '--input_path', str(input_sparse), 
             '--output_path', str(output_aligned), 
             '--method', 'MANHATTAN-WORLD',
-            '--max_image_size', '1024',
-            '--max_num_images', '100'
+            '--max_image_size', '1024'
         ]
         
         try:
@@ -188,7 +181,7 @@ class ColmapManager:
         undistorted_dir.mkdir(parents=True, exist_ok=True)
 
         command = [
-            self.colmap_exe.as_posix(), "image_undistorter",
+            str(self.colmap_exe), "image_undistorter",
             "--image_path", str(self.input_images_dir),
             "--input_path", str(input_aligned),
             "--output_path", str(undistorted_dir),
