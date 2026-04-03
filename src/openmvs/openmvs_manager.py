@@ -1,38 +1,57 @@
-import os
 from pathlib import Path
-from config import BASE_DIR, DATA_COLMAP_UNDISTORTED_DIR, DATA_OPENMVS_ALIGNED_MVS, DATA_OPENMVS_DENSE_MVS, ENGINES_OPENMVS_DENSE_EXE, DATA_OPENMVS_DIR, ENGINES_OPENMVS_INTERFACE_EXE
 from src.core.exceptions import OpenmvsError
 from src.utils.log_utils import success_alert, subprocess_execution
+from config import (
+    BASE_DIR, 
+    DATA_COLMAP_UNDISTORTED_DIR, 
+    DATA_OPENMVS_ALIGNED_MVS, 
+    DATA_OPENMVS_DENSE_MVS, 
+    ENGINES_OPENMVS_DENSE_EXE, 
+    DATA_OPENMVS_DIR, 
+    ENGINES_OPENMVS_INTERFACE_EXE
+)
 
 class OpenmvsManager:
-    def __init__(self, openmvs_dense_exe: Path = ENGINES_OPENMVS_DENSE_EXE, openmvs_interface_exe: Path = ENGINES_OPENMVS_INTERFACE_EXE, openmvs_dir: Path = DATA_OPENMVS_DIR, output_log: bool = True):
+    """
+    Classe per la gestione delle varie fasi dell'esecuzione di OpenMVS
+    """
+    def __init__(
+            self, 
+            openmvs_dense_exe: Path = ENGINES_OPENMVS_DENSE_EXE, 
+            openmvs_interface_exe: Path = ENGINES_OPENMVS_INTERFACE_EXE, 
+            openmvs_dir: Path = DATA_OPENMVS_DIR, 
+            input_dir: Path = DATA_COLMAP_UNDISTORTED_DIR,
+            output_log: bool = True,
+            aligned_mvs: Path = DATA_OPENMVS_ALIGNED_MVS,
+            dense_mvs: Path = DATA_OPENMVS_DENSE_MVS
+        ):
         self.openmvs_dense_exe = openmvs_dense_exe
         self.openmvs_interface_exe = openmvs_interface_exe
         self.openmvs_dir = openmvs_dir
+        self.input_dir = input_dir
+        self.aligned_mvs = aligned_mvs
+        self.dense_mvs = dense_mvs
         self.output_log = output_log
-
         self._run_constructor_validation()
 
-    # da valutare 
-    def start_full_openmvs_pipeline(self, colmap_input_dir: Path = DATA_COLMAP_UNDISTORTED_DIR):
-        pass
-        # self.import_from_colmap(colmap_input_dir)
-        # self.generate_dense_point_cloud()
+    def start_full_openmvs_pipeline(self):
+        """
+        Funzione che importa il modello da colmap e genera la nuvola densa.
+        """
+        self.import_from_colmap()
+        self.generate_dense_point_cloud()
 
-    def import_from_colmap(self, colmap_input_dir: Path = DATA_COLMAP_UNDISTORTED_DIR, aligned_mvs: Path = DATA_OPENMVS_ALIGNED_MVS):
+    def import_from_colmap(self):
         """
         Converte le immagini senza distorzione di COLMAP nel formato .mvs.
-
-        Args:
-            colmap_input_dir (Path)
         """
         self.openmvs_dir.mkdir(parents=True, exist_ok=True)
 
         command = [
             str(self.openmvs_interface_exe),
-            "-i", str(colmap_input_dir),
-            "-o", str(aligned_mvs),
-            "--image-folder", str(colmap_input_dir / "images"),
+            "-i", str(self.input_dir),
+            "-o", str(self.aligned_mvs),
+            "--image-folder", str(self.input_dir / "images"),
         ]
 
         try:
@@ -42,23 +61,25 @@ class OpenmvsManager:
             raise OpenmvsError(f'Failed to import model from COLMAP: {e}')
         self._log_cleanup()
 
-    def generate_dense_point_cloud(self, aligned_mvs: Path = DATA_OPENMVS_ALIGNED_MVS, dense_mvs: Path = DATA_OPENMVS_DENSE_MVS):
+    def generate_dense_point_cloud(self):
         """
         Trasforma la nuvola sparsa in una nuvola densa (milioni di punti).
         """
-        working_dir = aligned_mvs.parent
+        working_dir = self.aligned_mvs.parent
 
-        if not aligned_mvs.exists():
-            raise OpenmvsError(f"File model.mvs non trovato in: {aligned_mvs}")
+        if not self.aligned_mvs.exists():
+            raise OpenmvsError(f"File model.mvs non trovato in: {self.aligned_mvs}")
 
         command = [
             str(self.openmvs_dense_exe), 
-            "-i", str(aligned_mvs),
-            "-o", str(dense_mvs),
-            "--number-views-fuse", "1",      
+            "-i", str(self.aligned_mvs),
+            "-o", str(self.dense_mvs),
+            "--number-views-fuse", "3",  # da 1 a 3
             "--resolution-level", "1",  
             "--number-views", "0",        
-            "--max-threads", "0",     
+            "--max-threads", "0",
+            '--filter-point-cloud', '1',  # mod  
+            '--postprocess-dmaps', '1'  # mod
         ]
 
         try:

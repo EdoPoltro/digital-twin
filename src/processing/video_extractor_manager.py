@@ -14,7 +14,7 @@ from config import (
     VIDEO_MIN_SHARPNESS, 
     VIDEO_SAMPLE_INTERVAL
 )
-from src.utils.log_utils import success_alert, warning_alert
+from src.utils.log_utils import progress_bar, success_alert, warning_alert
 
 class VideoExtractorManager:
     """
@@ -70,21 +70,26 @@ class VideoExtractorManager:
         Funzione per generare le foto da un video.
         """
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        errors = 0
 
-        valid_frames: list[numpy.ndarray] = []
+        valid_frames: list[Path] = []
         last_accepted: numpy.ndarray = None
 
-        index = 0
+        frame_interval = max(1, int(self._fps * self.sample_interval))
+        total_samples = (self._total_frames + frame_interval - 1) // frame_interval
+        iterable_progress_bar =  progress_bar(self._run_frames_exractor(), description='Images extracting from video')
+        iterable_progress_bar.total = total_samples
 
-        for frame in self._run_frames_exractor():
+        index = 0
+        errors = 0
+
+        for frame in iterable_progress_bar:
             try:
                 self._frame_validation(frame, last_accepted)
-                self._save_frame(frame, index)
+                frame_path = self._save_frame(frame, index)
                 last_accepted = frame
+                valid_frames.append(frame_path)
                 index += 1
-                valid_frames.append(frame)
-            except Exception as e:
+            except Exception:
                 errors += 1
 
         self.valid_frames = valid_frames
@@ -158,7 +163,7 @@ class VideoExtractorManager:
         if max_val > (1.0 - self.min_difference):
             raise Exception('Frame discarded')
 
-    def _save_frame(self, frame: numpy.ndarray, image_index: int) -> None:
+    def _save_frame(self, frame: numpy.ndarray, image_index: int) -> Path:
         """
         Funzione per salvare l'immagine filtrata.
         """
@@ -173,3 +178,5 @@ class VideoExtractorManager:
 
         if not success:
             raise VideoExtractorError(f'Failed to save image: {image_path}')
+        
+        return image_path

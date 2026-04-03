@@ -43,7 +43,7 @@ def subprocess_execution(command: list[str], loading_msg: str = DEFAULT_LOADING_
 
     try:
         if output_log:
-            print(f"\n⚙️ [RUNNING]: {loading_msg.capitalize()}\n{'-'*50}")
+            print(f"\n[LOG]: {loading_msg.capitalize()}\n{'-'*50}")
             try:
                 process.wait(timeout=timeout)
             except subprocess.TimeoutExpired:
@@ -75,7 +75,7 @@ def subprocess_execution(command: list[str], loading_msg: str = DEFAULT_LOADING_
         error_alert('Process interrupted by user.')
         raise
 
-def progress_bar(iterable: Iterable[Any], description: str = DEFAULT_LOADING_MESSAGGE):
+def progress_bar(iterable: Iterable[Any], description: str = DEFAULT_LOADING_MESSAGGE, total: int = None):
     """
     Funzione per monitorare il processamento di liste di oggetti
     """
@@ -84,5 +84,6 @@ def progress_bar(iterable: Iterable[Any], description: str = DEFAULT_LOADING_MES
         desc=str(description), 
         bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
         dynamic_ncols=True,
-        leave=False
+        leave=False,
+        total=total
     )

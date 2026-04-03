@@ -1,6 +1,7 @@
 from pathlib import Path
 import platform
 import shutil
+from typing import Literal
 
 # NUOVA ORGANIZZAZIONE
 
@@ -78,12 +79,13 @@ DEFAULT_ENVIRONMENT_CLEAN_UP = [DATA_PROCESSING_INTERIM_DIR, DATA_PROCESSING_PRO
 SUPPORTED_INPUT_FORMATS = ('.jpg', '.jpeg', '.png', '.tiff', '.tif')
 DEFAULT_PROCESSED_OUTPUT_FORMAT = '.png'
 SUPPORTED_3D_FORMATS = ('.ply', '.obj', '.stl')
-SUPPORTED_VIDEO_FORMATS = ('.mp4', '.mov', '.avi', '.mkv', '.webm')
+SUPPORTED_VIDEO_FORMATS = ('.mp4', '.mov', '.avi', '.mkv', '.webm', '.MOV')
 
 # FLAGS
 
-DEFAULT_SCAN_MODE = 'indoor' # 'indoor' | 'outdoor' 
-DEFAULT_ENVIRONMENT_MODE = 'standard' # 'standard' | 'underwater'
+DEFAULT_SCAN_MODE: Literal['indoor', 'outdoor'] = 'indoor' 
+DEFAULT_ENVIRONMENT_MODE: Literal['standard', 'underwater'] = 'standard'
+DEFAULT_IMAGES_EXTRACTION_MODE: Literal['video', 'images'] = 'video'
 DEFAULT_MIN_PHOTO_ERROR = 5
 DEFAULT_MIN_PHOTO_WARNING = 15
 
