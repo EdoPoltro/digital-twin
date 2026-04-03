@@ -1,6 +1,8 @@
 import itertools
+import multiprocessing
 import subprocess
 import sys
+import threading
 import time
 from tqdm import tqdm
 from typing import Iterable, Any
@@ -87,3 +89,43 @@ def progress_bar(iterable: Iterable[Any], description: str = DEFAULT_LOADING_MES
         leave=False,
         total=total
     )
+
+class Loader:
+    def __init__(self, end_msg="Done!"):
+        self.end_msg = end_msg
+        self.desc = ""
+        self._process = None
+
+    @staticmethod
+    def _animate(desc, stop_event):
+        """Funzione statica che gira in un processo separato."""
+        spinner = itertools.cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
+        try:
+            while not stop_event.is_set():
+                sys.stdout.write(f'\r{next(spinner)} {desc}')
+                sys.stdout.flush()
+                time.sleep(0.1)
+        finally:
+            # Pulisce la riga prima di chiudere il processo
+            sys.stdout.write('\r' + ' ' * (len(desc) + 20) + '\r')
+            sys.stdout.flush()
+
+    def start(self, desc=DEFAULT_LOADING_MESSAGGE):
+        """Avvia lo spinner in un processo indipendente."""
+        self.desc = desc
+        self._stop_event = multiprocessing.Event()
+        self._process = multiprocessing.Process(
+            target=self._animate, 
+            args=(self.desc, self._stop_event),
+            daemon=True # Muore se il main process viene killato
+        )
+        self._process.start()
+        return self
+
+    def stop(self):
+        """Ferma il processo dello spinner."""
+        if self._process and self._process.is_alive():
+            self._stop_event.set()
+            self._process.join(timeout=0.5)
+            if self._process.is_alive():
+                self._process.terminate()

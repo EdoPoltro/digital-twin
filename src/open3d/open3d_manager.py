@@ -3,7 +3,7 @@ import numpy as np
 import open3d as o3d
 from pathlib import Path
 from src.core.exceptions import Open3dError
-from src.utils.log_utils import success_alert, warning_alert
+from src.utils.log_utils import Loader, success_alert, warning_alert
 from config import (
     DATA_OPEN3D_MESH_OBJ, 
     DATA_OPEN3D_MESH_PLY, 
@@ -29,6 +29,7 @@ class Open3dManager:
         self.mesh = None
         self.dense = None
         self.scale_real_distance = scale_real_distance
+        self._loader = Loader()
         o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Error)
 
     def start_full_open3d_pipeline(self):
@@ -124,13 +125,17 @@ class Open3dManager:
         """
         Funzione per importare una mesh gia esistente.
         """
+        self._loader.start('Mesh importing.')
+
         try:
             self.mesh = o3d.io.read_triangle_mesh(
                 str(self.mesh_ply_path), 
                 enable_post_processing=True
             )   
             success_alert('Mesh imported.')
+            self._loader.stop()
         except Exception:
+            self._loader.stop()
             raise Open3dError('Import failed.')
 
     def run_dense_importer(self):
@@ -139,11 +144,15 @@ class Open3dManager:
         """
         if not self.dense_ply_path.exists():
             raise Open3dError(f"File {self.dense_ply_path.name} not found.")
+        
+        self._loader.start('Dense importing.')
             
         try:
             self.dense = o3d.io.read_point_cloud(str(self.dense_ply_path))
+            self._loader.stop()
             success_alert('Dense imported.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Import failed.')
 
     def run_auto_alignement(self):
@@ -152,6 +161,8 @@ class Open3dManager:
         """
         if self.dense is None:
             raise Open3dError(f"Dense not found.")
+        
+        self._loader.start('Aligning.')
         
         try:
             plane_model, inliers = self.dense.segment_plane(distance_threshold=0.02, ransac_n=3, num_iterations=1000)
@@ -172,8 +183,10 @@ class Open3dManager:
             
             z_mean = np.mean(np.asarray(self.dense.points)[inliers][:, 2])
             self.dense.translate((0, 0, -z_mean))
+            self._loader.stop()
             success_alert('Alignement completed.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Alignement failed.')
 
     def run_geometry_estimater(self):
@@ -183,12 +196,19 @@ class Open3dManager:
         if self.dense is None:
             raise Open3dError(f"Dense not found.")
         
+        self._loader.start('Geometry estimating.')
+        
         try:
-            self.dense.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.05, max_nn=20)) # si puo modificare con delle var
-            self.dense.orient_normals_towards_camera_location(camera_location=np.array([0, 0, 0]))
+            self.dense.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.05, max_nn=20))
+            centro = self.dense.get_center()
+            self.dense.orient_normals_towards_camera_location(camera_location=centro)
             self.dense.orient_normals_consistent_tangent_plane(10)
+            normals_array = np.asarray(self.dense.normals)
+            self.dense.normals = o3d.utility.Vector3dVector(-normals_array)
+            self._loader.stop()
             success_alert('Geometry estimated.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Geometry estimation failed.')
         
     def run_fog_remover(self):
@@ -198,11 +218,15 @@ class Open3dManager:
         if self.dense is None:
             raise Open3dError(f"Dense not found.")
         
+        self._loader.start('Fog removal.')
+        
         try:
             _, index = self.dense.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0) # si puo modificare con delle var
             self.dense = self.dense.select_by_index(index)
+            self._loader.stop()
             success_alert('Fog removed.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('fog removal failed.')
         
     def run_poisson_mesher(self):
@@ -211,6 +235,8 @@ class Open3dManager:
         """
         if self.dense is None:
             raise Open3dError(f"Dense not found.")
+        
+        self._loader.start('meshing.')
 
         try:
             self.mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(self.dense, depth=9)
@@ -221,8 +247,10 @@ class Open3dManager:
 
             self.dense_ply_path.parent.mkdir(parents=True, exist_ok=True)
             o3d.io.write_triangle_mesh(str(self.mesh_ply_path), self.mesh)
-            success_alert(f'Mesh reconstructed.')
+            self._loader.stop()
+            success_alert('Mesh reconstructed.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Mesh reconstruction failed.')
     
     def run_noise_remover(self):
@@ -230,7 +258,9 @@ class Open3dManager:
         Funzione per rimuovere il rumore.
         """
         if self.mesh is None:
-            raise Open3dError(f"Mesh not found.")
+            raise Open3dError("Mesh not found.")
+        
+        self._loader.start('Noise removal.')
         
         try:
             triangle_clusters, cluster_n_triangles, _ = self.mesh.cluster_connected_triangles()
@@ -243,10 +273,12 @@ class Open3dManager:
                 self.mesh.remove_triangles_by_mask(triangles_to_remove)
                 self.mesh.remove_unreferenced_vertices()
                 n_rimossi = len(cluster_n_triangles) - 1
+                self._loader.stop()
                 success_alert(f'{n_rimossi} clusters removed.')
             else:
                 success_alert('No clusters removed.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Clusters removal failed.')
 
     def run_smoothing(self):
@@ -255,11 +287,15 @@ class Open3dManager:
         """
         if self.mesh is None:
             raise Open3dError(f"Mesh not found.")
+        
+        self._loader.start('Smoothing.')
 
         try:
             self.mesh = self.mesh.filter_smooth_taubin(number_of_iterations=2) # si puo modificare con delle var
+            self._loader.stop()
             success_alert('Smoothing completed.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Smoothing failed.')
 
     def run_topological_cleaning(self):
@@ -269,13 +305,17 @@ class Open3dManager:
         if self.mesh is None:
             raise Open3dError(f"Mesh not found.")
         
+        self._loader.start('Topological cleaning.')
+        
         try:
             self.mesh.remove_degenerate_triangles()
             self.mesh.remove_duplicated_triangles()
             self.mesh.remove_duplicated_vertices()
             self.mesh.remove_unreferenced_vertices()
+            self._loader.stop()
             success_alert('Topological cleaning completed.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Topological cleaning failed.')
 
     def run_scaler(self):
@@ -291,10 +331,14 @@ class Open3dManager:
         
         self.mesh_obj_path.parent.mkdir(parents=True, exist_ok=True)
 
+        self._loader.start('exporting.')
+
         try:
             o3d.io.write_triangle_mesh(str(self.mesh_obj_path), self.mesh, write_ascii=False)
+            self._loader.stop()
             success_alert('Exportation completed.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Exportation failed.')
 
     def run_viewer(self):
@@ -303,6 +347,8 @@ class Open3dManager:
         """
         if self.mesh is None:
             raise Open3dError(f"Mesh not found.")
+        
+        self._loader.start('Visualization.')
         
         try:
             o3d.visualization.draw_geometries(
@@ -313,7 +359,9 @@ class Open3dManager:
                 mesh_show_wireframe=False,
                 mesh_show_back_face=True
             )
+            self._loader.stop()
             success_alert('Visualization completed.')
         except Exception:
+            self._loader.stop()
             raise Open3dError('Visualization failed.')
         

@@ -14,25 +14,26 @@ E' possibile anche tramite il modello 3D fare misurazioni, croppare la mesh, uni
 
 ## Environment setup windows
 
-Il progetto e scritto interamente in [Python 3.11.9](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe) e utilizza come moteri di calcolo per la generazione delle nuvole di punti [Colmap 4.0.2](https://github.com/colmap/colmap/releases/download/4.0.2/colmap-x64-windows-cuda.zip) e [OpenMVS 2.4](https://github.com/cdcseacave/openMVS/releases/download/v2.4.0/OpenMVS_Windows_x64.zip).
+Il progetto e scritto interamente in [Python 3.11.9](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe) e utilizza come motori di calcolo per la generazione delle nuvole di punti [Colmap 4.0.2](https://github.com/colmap/colmap) e [OpenMVS 2.4](https://github.com/cdcseacave/openMVS).
 
-<span style="color:red">
-       mettere link sia per cuda che non
-</span>
+Downloads:
+
+- [COLMAP 4.0.2 WINDOWS CUDA](https://github.com/colmap/colmap/releases/download/4.0.2/colmap-x64-windows-cuda.zip) (si può disabilitare)
+- [COLMAP 4.0.2 WINDOWS NO CUDA](https://github.com/colmap/colmap/releases/download/4.0.2/colmap-x64-windows-nocuda.zip)
+
+- [OpenMVS 2.4 WINDOWS CUDA](https://github.com/cdcseacave/openMVS/releases/download/v2.4.0/OpenMVS_Windows_x64_CUDA.7z)
+- [OpenMVS 2.4 WINDOWS NO CUDA](https://github.com/cdcseacave/openMVS/releases/download/v2.4.0/OpenMVS_Windows_x64.zip)
+- [OpenMVS 2.4 LINUX](https://github.com/cdcseacave/openMVS/releases/download/v2.4.0/OpenMVS_Ubuntu_x64.zip)
 
 Per preparare l'ambiente all'esecuzione di Digital twin è necessario seguire queste istruzioni:
 
-<span style="color:red">
-       dire che ce distinzione tra colmap cuda e no e ancehe per openmvs
-</span>
-
-- Verificare di disporre di una scheda video NVIDIA con i driver aggiornati all'ultima versione.
+- Per utilizare le versioni cuda dei motori di calcolo verificare di disporre di una scheda video NVIDIA con i driver aggiornati all'ultima versione.
 
 - Tramite github scaricare la cartella del progetto `git clone https://github.com/EdoPoltro/progetto-digital-twin.git`.
 
-- Scaricare Colmap 4.0.2 da github, estrarre la cartella contenente i file .exe, rinominarla come "colmap" e inserirla nella cartella /digital_twin/engines all'interno del progetto.
+- Scaricare Colmap 4.0.2 da github, estrarre la cartella contenente i file .exe, rinominarla come "colmap" e inserirla nella cartella `progetto-digital-twin.git/engines` all'interno del progetto.
 
-- Scaricare OpenMVS 2.4 da github, estrarre la cartella contenente i file .exe, rinominarla "openmvs" e inserirla nella cartella /digital_twin/engines all'interno del progetto.
+- Scaricare OpenMVS 2.4 da github, estrarre la cartella contenente i file .exe, rinominarla "openmvs" e inserirla nella cartella `progetto-digital-twin.git/engines` all'interno del progetto.
 
 - Generare la venv: `py -3.11 -m venv venv`.
 
@@ -67,6 +68,7 @@ Durante lo sviluppo è stato necessario passare ad una macchina virtuale Vast AI
 digital_twin
 |_ data
 |   |_ processing
+|   |   |_ video
 |   |   |_ raw  < ---- input image
 |   |   |_ processed
 |   |_ colmap
@@ -124,34 +126,52 @@ In fase di sviluppo ho notato che ci sono 2 pipeline possibili per la generazion
 
 ### Processing
 
-In questa fase Creo un array di CapturedImage dove salvo tutti i dati EXIF generali delle foto ed effettuo i relativi controlli. Nella fase di estrazione dei dati è stato necessario fare uno studio per capire quali fossero essenziali e quali no: i dati gps come altitudine, latitudine e longitudine diventano necessari qualora la modalità di scan sia 'outdoor' per usufruire della georeferenzazione, mentre i dati delle camere come la focale e la risoluzione sono sempre obbligatori e vengono usati proprio per la generazione della nuvola di punti.
+Per popolare il progetto di immagini sono previste due strategie possibili: caricando in manualmente `data/processing/raw` le immagini o inserendo un video in `data/processing/video` e segnalando il metodo utilizzato nel file config.py come extraction_mode.
+Un manager dedicato si occupa di catturare i frame del video per ogni intervallo di 0.5s (regolabile tramite il file delle config.py), di filtrarli per tenere solo le foto utilizzabili e di caricarali in `data/processing/raw` per proseguire con la pipeline. Questa aggiunta ha permesso di ottenere molte più foto con molto meno sforzo e questo a portato un incremento nelle prestazioni della nuvola sparsa.
 
-Dopo la prima selezione le foto passano alla fase di processamento vera e propria dove è possibile configurare il processor manager in due modalità: default e underwater, a seconda della modalità scelta la pipeline di filtri che vengono applicati cambia.
+Successivamente viene creato un array di CapturedImage dove posso salvare tutti i dati EXIF generali delle foto ed effettuo i relativi controlli. 
+Nella fase di estrazione dei dati è stato necessario fare uno studio per capire quali fossero essenziali e quali no: i dati gps come altitudine, latitudine e longitudine diventano necessari qualora la modalità di scan sia 'outdoor' per usufruire della georeferenzazione, mentre i dati delle camere come la focale e la risoluzione sono sempre obbligatori e vengono usati proprio per la generazione della nuvola di punti.
+
+Nelle versioni più aggiornate di COLMAP (come 4.0.2) non e più necessario estrarre manualmente i dati delle camere per poi passarli all'interfaccia che si occuperà di estrarli autonomamente. 
+
+Dopo la prima selezione le foto passano alla fase di processamento dove è possibile configurare il processor manager in due modalità: default e underwater, a seconda della modalità scelta la pipeline di filtri che vengono applicati cambia.
 
 Per gestire lo stato delle immagini ed il loro path è stato implmentato un promoter che ha il copito di spostare le foto, aggiornare lo stato ed il path. Tutto questo per separare la fase di processamento da quella di gestione delle cartelle durante la pipeline. 
 Alla fine della fase di processing le foto hanno stato processed e si trovano nella relativa cartella pronte ad essere usate.
 
 ```
-| Raw | -- > | Ingestion | -- > | Extraction | -- > | Processor | -- > | Processed |
+( Video ) -- > | Raw | -- > | Ingestion | -- > | Extraction | -- > | Processor | -- > | Processed |
 ```
 
 ### COLMAP 
 
-COLMAP è un motore di calcolo scritto in C ottimo per la generazione di nuvole di punti sparse ricevendo in input delle immagini. In questa fase appunto vanno predisposti i dati per essere passati successivamente a COLMAP, per essere elaborati e successivamente esportati nel formato corretto per la fase successiva.
+COLMAP è un motore di calcolo scritto in C ottimo per la generazione di nuvole di punti sparse ricevendo in input delle immagini.
 
-Il file metadata uploader si occupa di generare un db sqllight con i dati delle telecamere e un file txt con i dati gps delle foto. Nelle nuove versioni di COLMAP (>=4.0) prende automaticamente i dati delle camere dalle foto senza passargli un database. 
+Quando viene avviata la pipeline di colmap inizia la generazione della nuvola sparsa che viene depositata in `data/colmap/sparse`: può capitare che l'algoritmo non riesca a trovare un' unica nuvola di punti unita, in tal caso verrebbe lanciato un alert e verrebbe utilizzata la nuvola più grande che è stata riconosciuta. Successivamente per orientare i dati ottenuti, a seconda della modalità di scan scelta, viene attivato l'aligner che si occupa di raddrizzare la nuvola nel piano e deposita il risultato nella cartella `data/colmap/aligned`.
 
-Successivamente viene avviata la pipeline di colmap che genera la nuvola sparsa, successivamente a seconda della modalità di scan adotta l'aligner corretto per migliorare gli assi e la posizione dei punti e prepara le immagini per il passo successivo rimuovendo la distorsione dovuta dalla lente della camera.
+E' importante non utilizzare i dati GPS in una scansione indoor perchè le camere tra loro saranno troppo vicine e l'allinemanto andrà in crash. Una volta che la nuvola sparsa è pronta i dati ottenuti vengono preparati per la fase successiva, alle immagini viene rimossa la distorsione e vine depositato tutto nella cartella `data/colmap/undistorted`.
 
-<span style="color:red">COLMAP può generare una nuvola di punti densa ma per ora non ho provato, dovrebbe essere peggiore in prestazioni ma va verificato.</span>
+Nella fase di matching per confrontare i punti trovati ci sono tre comandi possibili: exhaustive_matcher, sequential_matcher e spatial_metcher. Il primo confronta tutti i punti tra di loro, richiede diverso tempo se i punti sono tanti portanto la complessita a O(N^2) ed è perfetta se i punti sono pochi. Il secondo metodo consiste nel definire un numero di punti precedenti e successivi da confrontare per ogni punto, questo permette di abbassare la complessita se i punti sono molti (Es. >300). Il terzo metodo utilizza i dati gps e confronta le foto vicine tra di loro nello spazio evitando scansioni inutili, è utile quando si mappa una zaona molto larga.
+
+COLMAP riuscirebbe a proseguire e a generare anche la nuvola di punti densa ma le prestazioni dell' algoritmo che usa sono nettamnte inferiori a quelle di OpenMVS.
+
+Faccio menzione del file metadata_uploade.py che serviva nelle versioni precedente di colmap per preparare un database lightsql con i dati delle camere, con la versione 4.0.0 o superiore non è più necessario ed è diventato sconsigliato per non imbattersi in problemi di allinemanto dovuti al formato dei dati sul database.
 
 ```
-| metadata uploading | -- > | sparse | -- > | aligned | -- > | undisotrted |
+( metadata uploading ) -- > | sparse | -- > | aligned | -- > | undisotrted |
 ```
 
 ### OpenMVS
 
+OpenMVS è il motore di calcolo che utilizzo per la generazione della nuvola di punti densa a partire dai dati presenti nella cartella data/colmap/undistorted di COLMAP, infatti dispone di un interfaccia per recuperare autonomamente i dati e per generare il file .mvs che contiene tutti i dati che gli servono per partire.
+
+Il comando per cominciare la generazione della nuvola densa è il più corposo del progetto e richiede diverso tempo di esecuzione per terminare.
+
+OpenMVS potrebbe proseguire e generare anche la mesh texturizzata ma ho riscontrato diversi problemi nell'utilizzare i comandi, in particolare nella gen del file .mvs che contirne la mesh e le camere.
+
 ### Open3D
+
+Open3D è lo strumento che uso per ripulire il modello, raddrizzarlo, scalarlo, texturizzarlo e visualizzarlo.
 
 ## Shooting & Asset Acquisition
 

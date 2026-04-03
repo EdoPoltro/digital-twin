@@ -191,3 +191,15 @@ Ho notato che spesso crasha per colpa dellimportazione di colmap in openmvs, per
 open 3d veloce e meno risorse
 
 open mvs lento piu preciso e qualitativo 
+
+
+
+
+
+
+
+"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\ReconstructMesh.exe" dense.mvs -o dense_mesh.mvs
+
+"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\RefineMesh.exe" dense_mesh.mvs
+
+"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\TextureMesh.exe" dense_mesh_refine.mvs --export-type obj

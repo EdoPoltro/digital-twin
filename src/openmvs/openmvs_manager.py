@@ -75,7 +75,7 @@ class OpenmvsManager:
             "-i", str(self.aligned_mvs),
             "-o", str(self.dense_mvs),
             "--number-views-fuse", "3",  # da 1 a 3
-            "--resolution-level", "1",  
+            "--resolution-level", "1",  # da 1 a 0
             "--number-views", "0",        
             "--max-threads", "0",
             '--filter-point-cloud', '1',  # mod  
