@@ -203,3 +203,56 @@ open mvs lento piu preciso e qualitativo
 "C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\RefineMesh.exe" dense_mesh.mvs
 
 "C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\TextureMesh.exe" dense_mesh_refine.mvs --export-type obj
+
+
+07/04/2026
+
+scoeprto bug da forum di openmvs 2.4, in pratica le texture non vengono incollata bene se non disabilito manualmente due flags. in caso non funzioni come approccio passero ad una versone più vecchia (2.1) che a detta degli utentni è piu stabile e non presenta quetso bug.
+
+"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\TextureMesh.exe" dense_mesh_refine.mvs --export-type obj --local-seam-leveling 0 --global-seam-leveling 0
+
+setup linux
+
+- caricare openmvs linux
+
+- scaricare da one drive le foto / video in formato zip
+abilitare i permessi di condivisione su google drive
+pip install gdown
+gdown --id 1k2IHSf-h255XbfoZJkMKo_O6c8lpXTXM(link cartella) -O data/raw.zip(destinazione)
+gdown --id 1k2IHSf-h255XbfoZJkMKo_O6c8lpXTXM -O data/raw.zip
+
+- python 
+# Aggiorna i pacchetti
+sudo apt update
+sudo apt install software-properties-common -y
+
+# Aggiungi il repository per versioni Python specifiche
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+
+# Installa Python 3.11 e l'utility per le venv
+sudo apt install python3.11 python3.11-venv python3.11-dev -y
+
+cd ~/workspace/progetto
+python3.11 -m venv venv
+
+# Attiva la venv
+source venv/bin/activate
+
+# Verifica la versione
+python --version 
+# Deve rispondere: Python 3.11.x
+
+- colmap
+# Crea un nuovo ambiente specifico per la 4.0.2
+conda create -n colmap4_env -c conda-forge colmap=4.0.2 -y
+conda activate colmap4_env
+
+se non si installa il problema e cuda 
+
+conda update --all -c conda-forge -y 
+se non va
+
+- permessi
+chmod +x ./engines/openmvs/*
+

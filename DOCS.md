@@ -175,5 +175,13 @@ Open3D è lo strumento che uso per ripulire il modello, raddrizzarlo, scalarlo, 
 
 ## Shooting & Asset Acquisition
 
+E' consigliata la modalità video per inizializzare i dati nel programma perchè è in grado di generare molte piu foto significative per l'elaborazione.
+
+Durante la fase di ripresa e consigliato eseguire prima uno scan generare dell'area girandoci attorno da varie altezze e poi di avvicinarsi agli spigoli ed ai dettagli per aggiungere informazione ai frame. Più lungo sarà il video e più frame si potranno ricavare e maggiore saranno le prestazioni del modello finale, ovviamente la quantità di foto e direttamente proporzionale al tempo di esecuzione.
+
 ## System Requirements & Performance
+
+Il progetto per eleaborare in modo efficente senza crash necessita di una buona RAM (minimo 8GB) e di una scheda video NVIDIA: è possibile disabilitare il flag use_gpu ma questo comporterebbe un aumento del tempo di calcolo.
+
+Il progetto deve elaborare una grande quantità di frame quindi utilizzare un pc con poca RAM potrebbe causare l'itnterruzione dell'esecuzione del programma.
 
