@@ -256,3 +256,40 @@ se non va
 - permessi
 chmod +x ./engines/openmvs/*
 
+colmap per orienter
+
+& "C:\Users\daxx6\Desktop\progetto-digital-twin\engines\colmap\bin\colmap.exe" model_orientation_aligner 
+--input_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\sparse\0" 
+--output_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\sparse\0" 
+--method MANHATTAN-WORLD 
+--image_path "C:\Users\daxx6\Desktop\progetto-digital-twin\data\processing\processed"
+
+& "C:\Users\daxx6\Desktop\progetto-digital-twin\engines\colmap\bin\colmap.exe" model_orientation_aligner --help
+
+
+"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\colmap\bin\colmap.exe" model_transformer --input_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\sparse\0" --output_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\sparse\0" --transform_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\rotazione.txt"
+
+open mvs texture e mesh
+
+"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\ReconstructMesh.exe" dense.mvs 
+--archive-type 2 
+-o mesh.mvs 
+--thickness-factor 1.5 
+--min-point-distance 2
+
+"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\RefineMesh.exe" mesh.mvs 
+-o refined.mvs
+
+"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\TextureMesh.exe" refined.mvs 
+-o textured.mvs 
+--export-type obj 
+--local-seam-leveling 0 
+--global-seam-leveling 0 
+--max-texture-size 8192
+
+ok ora faccioa latre prova
+
+# 2. RADDRIZZA: Ruota di 180 gradi sull'asse X
+# Creiamo la matrice di rotazione
+R = pcd.get_rotation_matrix_from_xyz((np.pi, 0, 0)) # np.pi = 180°
+pcd.rotate(R, center=(0, 0, 0))

@@ -4,6 +4,7 @@ venv/
 
 # Dati pesanti (Fondamentale!)
 data/
+workspace/
 *.JPG
 *.png
 *.ply
