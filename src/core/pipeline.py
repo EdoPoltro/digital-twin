@@ -19,6 +19,12 @@ def start_digital_twin_pipeline(extraction_mode: Literal['video', 'images'] = DE
         print(f'Digital Twin 3D - Avvio pipline - {DEFAULT_SCAN_MODE.capitalize()} mode')
         print("="*80)
 
+        open3d = Open3dManager()
+
+        open3d.start_full_open3d_pipeline()
+
+        return
+
         setup_project_environment()
 
         if extraction_mode == 'video': 
@@ -39,7 +45,7 @@ def start_digital_twin_pipeline(extraction_mode: Literal['video', 'images'] = DE
 
         if scan_mode == 'outdoor' and extraction_mode == 'images': start_full_metadata_uploading(captured_images)
 
-        colmap = ColmapManager(use_gpu=True)
+        colmap = ColmapManager(use_gpu=False)
 
         colmap.start_full_colmap_pipeline()
 
@@ -47,7 +53,7 @@ def start_digital_twin_pipeline(extraction_mode: Literal['video', 'images'] = DE
 
         openmvs.start_full_openmvs_pipeline() 
 
-        open3d = Open3dManager()
+        open3d = Open3dManager(model_scale=False)
 
         open3d.start_full_open3d_pipeline()
 

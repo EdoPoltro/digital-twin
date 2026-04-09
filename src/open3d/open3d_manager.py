@@ -22,10 +22,13 @@ class Open3dManager:
             open3d_dir: Path = DATA_OPEN3D_DIR,
             scan_mode: Literal['indoor', 'outdoor'] = DEFAULT_SCAN_MODE,
             scale_real_distance: float = 1,
+            scale_virtual_distance: float = 1,
             model_smoothing_iterations: int = 2,
-            model_flip: bool = True,
+            model_flip: bool = False,
             model_aligne: bool = True,
             model_scale: bool = False,
+            model_plane: bool = True,
+            model_axis: Literal['X', 'Y', 'Z'] = 'Y',
             model_ply: Path = DATA_OPEN3D_MODEL_PLY,
             model_obj: Path = DATA_OPEN3D_MODEL_OBJ
         ):
@@ -33,10 +36,13 @@ class Open3dManager:
         self.open3d_dir = open3d_dir
         self.scan_mode = scan_mode
         self.scale_real_distance = scale_real_distance
+        self.scale_virtual_distance = scale_virtual_distance
         self.model_smoothing_iterations = model_smoothing_iterations
         self.model_flip = model_flip
         self.model_aligne = model_aligne
         self.model_scale = model_scale
+        self.model_plane = model_plane
+        self.model_axis = model_axis
         self.model_ply = model_ply
         self.model_obj = model_obj
         self._model = None
@@ -67,7 +73,8 @@ class Open3dManager:
             if self._model.is_empty():
                 raise Open3dError('Model loaded is empty.')
             
-            if self._model.has_triangle_uvs():
+            if not self._model.has_triangle_uvs():
+                self._loader.stop()
                 warning_alert('No UV data detected.')
 
             self._loader.stop()
@@ -142,6 +149,9 @@ class Open3dManager:
                 R = self._model.get_rotation_matrix_from_xyz((np.pi, 0, 0))
                 self._model.rotate(R, center=self._model.get_center())
 
+            if self.model_plane: 
+                self._ransac_model_plane()
+
             if self.model_aligne:
                 min_bound = self._model.get_min_bound()
                 self._model.translate((0, 0, -min_bound[2]))
@@ -167,8 +177,7 @@ class Open3dManager:
         
         self._loader.start('Scaling.')
 
-        virtual_distance = self._get_virtual_distance()
-        scale_factor = self._get_scale_factor(self.scale_real_distance, virtual_distance)
+        scale_factor = self._get_scale_factor(self.scale_real_distance, self.scale_virtual_distance)
         
         try:
             self._model.scale(scale_factor, center=(0, 0, 0))
@@ -189,7 +198,11 @@ class Open3dManager:
         self._loader.start('Smoothing.')
         
         try:
+            original_uvs = np.asarray(self._model.triangle_uvs).copy()
+            backup_textures = [o3d.geometry.Image(t) for t in self._model.textures]
             self._model = self._model.filter_smooth_taubin(number_of_iterations=self.model_smoothing_iterations)
+            self._model.triangle_uvs = o3d.utility.Vector2dVector(original_uvs)
+            self._model.textures = backup_textures
             self._model.compute_vertex_normals()
             self._loader.stop()
             success_alert('Smoothing compleated.')
@@ -199,7 +212,7 @@ class Open3dManager:
 
     def run_model_exporter(self):
         """
-        Funzione che riesporta il file in un .obj processato.
+        Funzione che riesporta il file in un .obj processato + .ply.
         """
         if not self._model:
             raise Open3dError('Model not found.')
@@ -214,8 +227,12 @@ class Open3dManager:
                 self._model,
                 write_ascii=True,
                 write_vertex_normals=True,
-                write_vertex_colors=True,
-                print_progress=True
+                write_vertex_colors=True
+            )
+            o3d.io.write_triangle_mesh(
+                str(self.model_ply), 
+                self._model, 
+                write_ascii=False
             )
             self._loader.stop()
             success_alert('Exportation compleated.')
@@ -230,35 +247,30 @@ class Open3dManager:
         if virtual_distance <= 0 or real_distance <= 0:
             raise Open3dError('Invalid distance value.')
         return real_distance / virtual_distance
-    
-    def _get_virtual_distance(self) -> float:
+
+    def _ransac_model_plane(self):
         """
-        Funzione per ottenere in modo interattivo la virtual distance tra due punti.
-        Premere shift e tasto sinistro del mouse per settare due punti.
+        Funzione usata per riconoscere il piano del modello e per metterlo parallelo ad un asse a scelta.
         """
-        if not self._model:
-            raise Open3dError("Model not found.")
+        target_axis=self.model_axis
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = self._model.vertices
+        plane_model, _ = pcd.segment_plane(distance_threshold=0.01, ransac_n=3, num_iterations=1000)
+        [a, b, c, d] = plane_model
+        normal = np.array([a, b, c])
 
-        try:
-            vis = o3d.visualization.VisualizerWithEditing()
-            vis.create_window(window_name="Point Picking per Scalatura", width=1024, height=768)
-            vis.add_geometry(self._model)
-        
-            vis.run() 
-            vis.destroy_window()
-            picked_indices = vis.get_picked_points()
-        except Exception as e:
-            raise Open3dError("Virtual distance picking failed.")
-        
-        if len(picked_indices) < 2:
-            raise Open3dError("No enough picked points founded.")
-        
-        vertices = np.asarray(self._model.vertices)
+        if target_axis == 'Z':
+            destination = np.array([0, 0, 1])
+        elif target_axis == 'Y':
+            destination = np.array([0, 1, 0])
+        else:
+            destination = np.array([1, 0, 0])
 
-        p1 = vertices[picked_indices[0]]
-        p2 = vertices[picked_indices[1]]
+        v = np.cross(normal, destination)
+        s = np.linalg.norm(v)
+        c_val = np.dot(normal, destination)
 
-        return float(np.linalg.norm(p1 - p2))
-
-
-    
+        if s > 1e-6:
+            vx = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+            R = np.eye(3) + vx + np.dot(vx, vx) * ((1 - c_val) / (s**2))
+            self._model.rotate(R, center=self._model.get_center())

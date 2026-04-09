@@ -65,13 +65,13 @@ class OpenmvsManager:
         """
         Funzione che importa il modello da colmap e genera la nuvola densa.
         """
-        self.import_from_colmap()
-        self.generate_dense_point_cloud()
-        self.generate_mesh()
-        self.refine_mesh()
-        self.texture_mesh()
+        self.run_colmap_importer()
+        self.run_dense_generator()
+        self.run_mesh_generator()
+        self.run_mesh_refiner()
+        self.run_mesh_texturizer()
 
-    def import_from_colmap(self):
+    def run_colmap_importer(self):
         """
         Converte le immagini senza distorzione di COLMAP nel formato .mvs.
         """
@@ -91,7 +91,7 @@ class OpenmvsManager:
         except Exception as e:
             raise OpenmvsError(f'Failed to import model from COLMAP: {e}')
 
-    def generate_dense_point_cloud(self):
+    def run_dense_generator(self):
         """
         Trasforma la nuvola sparsa in una nuvola densa (milioni di punti).
         """
@@ -105,19 +105,6 @@ class OpenmvsManager:
             "--resolution-level", "0"
         ]
 
-        # command = [
-        #     str(self.openmvs_dense_exe), 
-        #     "-i", str(self.aligned_mvs),
-        #     "-o", str(self.dense_mvs),
-        #     "--number-views-fuse", "3",  # da 1 a 3
-        #     "--resolution-level", "0",  # da 1 a 0
-        #     "--number-views", "0",        
-        #     "--max-threads", "0",
-        #     '--filter-point-cloud', '1',  # mod  
-        #     '--postprocess-dmaps', '1'  # mod
-        # ]
-
-
         try:
             subprocess_execution(command, 'Dense point cloud generating.', output_log = self.output_log, cwd=self.openmvs_dir)
             success_alert('Dense point cloud generated.')
@@ -125,7 +112,7 @@ class OpenmvsManager:
         except Exception as e:
             raise OpenmvsError(f"Error generating dense point cloud: {e}")
 
-    def generate_mesh(self):
+    def run_mesh_generator(self):
         """
         Funzione per la costruizone della mesh.
         """
@@ -148,7 +135,7 @@ class OpenmvsManager:
         except Exception:
             raise OpenmvsError("Mesh reconstruction failed.")
 
-    def refine_mesh(self):
+    def run_mesh_refiner(self):
         """
         Funzione per rifinire la mesh.
         """
@@ -168,7 +155,7 @@ class OpenmvsManager:
         except Exception:
             raise OpenmvsError("Mesh refining failed.")
     
-    def texture_mesh(self):
+    def run_mesh_texturizer(self):
         """
         Funzione per generare la texture.
         Nota: i flag '--local-seam-leveling 0' e '--global-seam-leveling 0' sono obbligatori per un bug della versione 2.4
