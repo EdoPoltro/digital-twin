@@ -19,12 +19,6 @@ def start_digital_twin_pipeline(extraction_mode: Literal['video', 'images'] = DE
         print(f'Digital Twin 3D - Avvio pipline - {DEFAULT_SCAN_MODE.capitalize()} mode')
         print("="*80)
 
-        open3d = Open3dManager()
-
-        open3d.start_full_open3d_pipeline()
-
-        return
-
         setup_project_environment()
 
         if extraction_mode == 'video': 
