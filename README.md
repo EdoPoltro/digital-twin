@@ -23,11 +23,11 @@ Per preparare l'ambiente all'esecuzione di Digital twin è necessario seguire qu
 
 - Per utilizare le versioni cuda dei motori di calcolo verificare di disporre di una scheda video NVIDIA con i driver aggiornati all'ultima versione.
 
-- Tramite github scaricare la cartella del progetto `git clone https://github.com/EdoPoltro/progetto-digital-twin.git`.
+- Tramite github scaricare la cartella del progetto `git clone https://github.com/EdoPoltro/digital-twin.git`.
 
-- Scaricare Colmap 4.0.2 da github, estrarre la cartella contenente i file .exe, rinominarla come "colmap" e inserirla nella cartella `progetto-digital-twin.git/engines` all'interno del progetto.
+- Scaricare Colmap 4.0.2 da github, estrarre la cartella contenente i file .exe, rinominarla come "colmap" e inserirla nella cartella `digital-twin.git/engines` all'interno del progetto.
 
-- Scaricare OpenMVS 2.4 da github, estrarre la cartella contenente i file .exe, rinominarla "openmvs" e inserirla nella cartella `progetto-digital-twin.git/engines` all'interno del progetto.
+- Scaricare OpenMVS 2.4 da github, estrarre la cartella contenente i file .exe, rinominarla "openmvs" e inserirla nella cartella `digital-twin.git/engines` all'interno del progetto.
 
 - Generare la venv: `py -3.11 -m venv venv`.
 
@@ -54,7 +54,7 @@ Per preparare l'ambiente in lunx va cambiata leggermente la logica:
 ## Struttura del progetto
 
 ```
-progetto_digital_twin
+digital-twin
 |_ data
 |   |_ processing
 |   |   |_ video
@@ -113,7 +113,7 @@ Se il programma è in modalità indoor allora effettuerà con open3d la fase di 
  -- > | Exportation | 
  ```
 
-Una volta caricate le immagini scattate nella cartella `progetto_digital_twin/data/processing/raw` o caricato un video nella cartella `progetto_digital_twin/data/processing/raw` il programma seguirà la pipeline associata alla modalita di scan e otterrà il modello in formato obj.
+Una volta caricate le immagini scattate nella cartella `digital-twin/data/processing/raw` o caricato un video nella cartella `digital-twin/data/processing/raw` il programma seguirà la pipeline associata alla modalita di scan e otterrà il modello in formato obj.
 
 In fase di sviluppo ho notato che ci sono 2 pipeline possibili per la generazione della mesh texturizzata:
 
