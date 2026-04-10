@@ -1,295 +1,190 @@
-# Digital Twin
+# Digital twin
 
-## appunti veloci
+## Descrizione
 
-link per dual twin esempio risultato : https://application.utwin.it/devForgeViewer?developerId=090eef94-8a39-49a9-a47e-79a7ada8b517&projectId=86530938-6679-42e8-9012-37c9d75b5f24&modelPath=%2FTimelapse%20Lab%2FTelecamere%20cantiere%20Timelapse%20Lab.rvt
+L'applicazione è in grado di elaborare una serie di immagini, processarle e tramite COLMAP, OpenMVS e Open3D di generare una nuvola sparsa, una nuvola densa e una mesh texturizzata.
 
-link progetto : https://github.com/EdoPoltro/progetto-digital-twin.git
+L'applicazione inoltre riesce a gestire due modailta di scan (indoor e outdoor) per la mappatura di aree molto piccole, come ambienti domestici e aree relativamente grandi come case o strutture. a seconda della modalita di scan viene avviata una pipeline dedicata.
 
-flusso : 
-- inanzi tutto la parte fondamentale e capire quante immagini prendere e come devono essere angolate per ottenre la massima resa
-    poi tramite degli algoritmi dovro filtrare queste immagini e renderele piu pulite possibili, in caso di di scatti sotto acqua sarà utile implementare un algoritmo che rimuova le particelle associate all'acqua.
-- la seconda fase cosniste nella modellazione 3d degli oggetti, tramite una libreria posso puntizzare il mio oggetto per segnalarne poi spigoli, lati, ecc. da questo primo modello poi posso realizzare il mio file 3d in formato : .obj .fbx .gltf .glb (da scegliere il migliore che lo usero per l'output del programma). per la stampa 3d il formato è .stl, mentre per autocad è .step .3mf
+## Environment setup per windows
 
-OpenCV : libreria python per la correzione dei colori
-Open3D o PyVista : nuvole di punti
-OpenMVG ricostruzione 3D
-Flask o Fast API : interfaccia web
-watchdog : modifica in tempo reale delle foto
+Il progetto e scritto interamente in [Python 3.11.9](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe) e utilizza come motori di calcolo per la generazione delle nuvole di punti [Colmap 4.0.2](https://github.com/colmap/colmap) e [OpenMVS 2.4](https://github.com/cdcseacave/openMVS).
 
-pip freeze > requirements.txt per salvare le librerie su requirements.txt
+Downloads:
 
-## struttura del progetto
+- [COLMAP 4.0.2 WINDOWS CUDA](https://github.com/colmap/colmap/releases/download/4.0.2/colmap-x64-windows-cuda.zip) (si può disabilitare)
+- [COLMAP 4.0.2 WINDOWS NO CUDA](https://github.com/colmap/colmap/releases/download/4.0.2/colmap-x64-windows-nocuda.zip)
 
-progetto-digital-twin :
+- [OpenMVS 2.4 WINDOWS CUDA](https://github.com/cdcseacave/openMVS/releases/download/v2.4.0/OpenMVS_Windows_x64_CUDA.7z)
+- [OpenMVS 2.4 WINDOWS NO CUDA](https://github.com/cdcseacave/openMVS/releases/download/v2.4.0/OpenMVS_Windows_x64.zip)
+- [OpenMVS 2.4 LINUX](https://github.com/cdcseacave/openMVS/releases/download/v2.4.0/OpenMVS_Ubuntu_x64.zip)
 
-## obiettivi
+Per preparare l'ambiente all'esecuzione di Digital twin è necessario seguire queste istruzioni:
 
-capire come scattare le foto per una massima resa 
+- Per utilizare le versioni cuda dei motori di calcolo verificare di disporre di una scheda video NVIDIA con i driver aggiornati all'ultima versione.
 
-## parametri da salvare 
+- Tramite github scaricare la cartella del progetto `git clone https://github.com/EdoPoltro/progetto-digital-twin.git`.
 
-A. Parametri della Camera (Intrinseci):
+- Scaricare Colmap 4.0.2 da github, estrarre la cartella contenente i file .exe, rinominarla come "colmap" e inserirla nella cartella `progetto-digital-twin.git/engines` all'interno del progetto.
 
-Focal Length: Fondamentale per il software 3D.
+- Scaricare OpenMVS 2.4 da github, estrarre la cartella contenente i file .exe, rinominarla "openmvs" e inserirla nella cartella `progetto-digital-twin.git/engines` all'interno del progetto.
 
-Sensor Size: Per calcolare il rapporto pixel/metri.
+- Generare la venv: `py -3.11 -m venv venv`.
 
-B. Parametri di Posizionamento (Georeferenziazione):
+- Avviare la venv: `.\venv\Scripts\activate`.
 
-Coordinate (X, Y, Z): Se hai un GPS (o un sistema di posizionamento acustico sott'acqua).
+- Se la poweshell da problemi lanciare `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`.
 
-Orientamento (Pitch, Roll, Yaw): Per sapere come era inclinata la camera.
+- Installare le dipendenze dal file requiremnts.txt: `pip install -r requirements.txt`.
 
-C. Parametri Ambientali (Il vero "Twin"):
+- Eseguire la venv su main.py: `python main.py` o `.\venv\Scripts\python.exe main.py`.
 
-GSD (Ground Sample Distance): Quanti centimetri reali rappresenta un pixel (es. 1 pixel = 0.5 cm).
+## Environment setup per linux
 
-Timestamp: Data e ora precisa (per analisi temporali).
+Per preparare l'ambiente in lunx va cambiata leggermente la logica:
 
-Torbidità/Luce: (Se hai sensori) per giustificare eventuali errori nel modello.
+- Al posto di scaricare la cartella di COLMAP con gli eseguibili va installato tramite conda un ambiente di esecuzione dedicato con i comandi `conda create -n colmap -c conda-forge colmap=4.0.2 -y` e `conda activate colmap`, se ci sono problemi di esecuzione va controllata la vesione di CUDA. Per OpenMVS va scaricata semplicemente la distriubuzione degli eseguibili dedicata al sistema linux.
 
-## avvio progetto 
+- Vanno assegnati i diritti di esecuzione ai file di OpenMVS: `chmod +x ./engines/openmvs/*`.
 
-1. creare la venv : py -3.11 -m venv venv
+- Attenzione scaricare python solo dopo COLMAP. Per scaricare python e creare la venv vanno lanciati i seguenti comandi in ordine: `sudo apt update`, `sudo apt install software-properties-common -y`, `sudo add-apt-repository ppa:deadsnakes/ppa -y`, `sudo apt update`, `sudo apt install python3.11 python3.11-venv python3.11-dev -y`, poi all'interno della cartella del progetto `python3.11 -m venv venv` e `source venv/bin/activate`.
 
-2. attivare la venv : .\venv\Scripts\activate
+- Per scaricare file da google drvie (foto / video) eseguo `pip install gdown` e `gdown --id < link > -O < output_file_path >`.
 
-3. aggiornare il file requirements.txt
+## Struttura del progetto
 
-4. scaricare le libreire : pip install -r requirements.txt (prima aggiornare pip) 
-ricordo che open3d e molto esigente sulla versione di python e accetta solo fino al 3.11
+```
+progetto_digital_twin
+|_ data
+|   |_ processing
+|   |   |_ video
+|   |   |_ raw  < ---- input image
+|   |   |_ processed
+|   |_ colmap
+|   |_ openmvs
+|   |_ open3d  < ---- result model
+|_ src
+|   |_ processing
+|   |   |_ ingestion.py
+|   |   |_ metadata_extractor.py
+|   |   |_ processor_manager.py
+|   |   |_ promoter.py
+|   |_ colmap
+|   |   |_ colmap_manager.py
+|   |   |_ metadata_uploader.py
+|   |_ openmvs
+|   |   |_ openmvs_manager.py
+|   |_ open3d
+|   |   |_ open3d_manager.py
+|   |_ models
+|   |_ core
+|   |   |_ exceptions.py
+|   |   |_ pipeline.py
+|   |_ utils
+|   |   |_ io_utils.py
+|   |   |_ log_utils.py
+|   |   |_ math_utils.py
+|_ engines
+|   |_ colmap
+|   |_ openmvs
+|_ main.py  < ---- entry point
+|_ config.py
+|_ requrements.txt
+```
 
-## costruzione del modello dell'immagine 
+## Pipeline
+La pipeline viene leggermente modificata a secodna della dimensione dello scan: è presente una variabile d'ambiente nel file config.py chiamata SCAN_MODE: 'indoor' | 'outdoor' che gestisce la dimensione dello scan.
 
-usando il decoratore @dataclass si costruisce l'istanza con i parametri, usa i valori default se inizializzati,
-ho creato un enum per lo stato una classe generale per le caputred Images e due classi specifiche per i metadati della camera e spaziali.
+Se il programma è in modalità indoor allora effettuerà con open3d la fase di scaling, se il programma è in outdoor mode il programma effettuerà le fasi di GPS metadata uploading.
 
-## file config.py
-in quetso file centralizzo luso dei path e dei dati per avere solo una ricorrenza nel caso andassero cambiati 
+```
+| Ingestion | -- > | Processing | -- > ( Metadata uploading ) --
+                                                                 |
+                                                                 |
+ ------- | Undistorting | < -- | Aligning | < -- | Sparse | < --
+|
+|
+ -- > | Dense | --> | Mesh | -- > | Refine | -- > | Texture | --
+                                                                 |
+                                                                 |
+ --- ( Scaling ) < -- | Smoothing | < -- | Noise removing | < --
+|
+|
+ -- > | Exportation | 
+ ```
 
-## gestione delle eccezioni per il debug
+Una volta caricate le immagini scattate nella cartella `progetto_digital_twin/data/processing/raw` o caricato un video nella cartella `progetto_digital_twin/data/processing/raw` il programma seguirà la pipeline associata alla modalita di scan e otterrà il modello in formato obj.
 
-chiamo la baseError come exception di default poi in base al tipo mi da il suggest e importante che quando 
-faccio il raise poi quando chiamo la funzione faccio il blocco try except
+In fase di sviluppo ho notato che ci sono 2 pipeline possibili per la generazione della mesh texturizzata:
 
-## metadata extractor
-usndo pillow devo scorporare i file immagini per estrarre i dati EXIF 
-implemento una funzione void che mi update le istanze di CapturedImage che gestisce la seconda fase della pipeline 
+### Processing
 
-creo due nuove eccezioniper gestire i casi del load dei metadata
+Per popolare il progetto di immagini sono previste due strategie possibili: caricando in manualmente `data/processing/raw` le immagini o inserendo un video in `data/processing/video` e segnalando il metodo utilizzato nel file config.py come extraction_mode.
+Un manager dedicato si occupa di catturare i frame del video per ogni intervallo di 0.5s (regolabile tramite il file delle config.py), di filtrarli per tenere solo le foto utilizzabili e di caricarali in `data/processing/raw` per proseguire con la pipeline. Questa aggiunta ha permesso di ottenere molte più foto con molto meno sforzo e questo a portato un incremento nelle prestazioni della nuvola sparsa.
 
-width serve per chiudere i file immagine se scoppia un eccezione o se termina l'estrazione 
+Successivamente viene creato un array di CapturedImage dove posso salvare tutti i dati EXIF generali delle foto ed effettuo i relativi controlli. 
+Nella fase di estrazione dei dati è stato necessario fare uno studio per capire quali fossero essenziali e quali no: i dati gps come altitudine, latitudine e longitudine diventano necessari qualora la modalità di scan sia 'outdoor' per usufruire della georeferenzazione, mentre i dati delle camere come la focale e la risoluzione sono sempre obbligatori e vengono usati proprio per la generazione della nuvola di punti.
 
-uso i dati exif incapsulati nelle foto li traduco con la libreria tags in un dict ma prima lo estendo con un sotto dizionario presente in exif data per prendere anche il valore della focale. eseguo questo per tutte le foto
+Nelle versioni più aggiornate di COLMAP (come 4.0.2) non e più necessario estrarre manualmente i dati delle camere per poi passarli all'interfaccia che si occuperà di estrarli autonomamente. 
 
-i dati gps sono salvati in tuple di tuple ((x, y),(x, y),(x, y)) si ottengono sempre dai dati exif (sto valutando di separare in due funzioni per i dati della camera dai dati del gps per avere una maggiore separazione). inoltre sto valutando che qualora ci sia un problema di una sola immagine non devo lanciare un eccezione che va a main ma devo scartare la foto e gestire leccezione nella funzione con il for
+Dopo la prima selezione le foto passano alla fase di processamento dove è possibile configurare il processor manager in due modalità: default e underwater, a seconda della modalità scelta la pipeline di filtri che vengono applicati cambia.
 
-si possono adottare due approcci per la gestione degli errori: o scarto la foto subito, o se magari una foto ha risoluzione ottima ma mancano i dati gps li metto a none e tengo la foto -> per semplicita di implementazione per ora tengo la prima opzione 
-va discusso il quando scartare una foto per quali dati mancanti pero ra do peso piu al gps 
+Per gestire lo stato delle immagini ed il loro path è stato implmentato un promoter che ha il copito di spostare le foto, aggiornare lo stato ed il path. Tutto questo per separare la fase di processamento da quella di gestione delle cartelle durante la pipeline. 
+Alla fine della fase di processing le foto hanno stato processed e si trovano nella relativa cartella pronte ad essere usate.
 
-## cartella data 
-ho reso piu rigorosa la struttura della cartella data per sapere in ogni fase della pipeline dove viaggiano i miei dati con input raw , interim (le foto passate dai filtri ma ancora di brutta copia, se non mi soddisfano posso scartarle e passare altri filtri e ricominciare da raw), processed (il dataset finale), output (i modelli generati ).
+```
+( Video ) -- > | Raw | -- > | Ingestion | -- > | Extraction | -- > | Processor | -- > | Processed |
+```
 
-per ottenere la dimensione del sensore devo scaricare un database in json e caricarlo in SENSOR_DB_DIR
+### COLMAP 
 
-ho scartato lestrazione del senso dimension dal json perche non aveva tutte le dimensioni che mi servivano quindi ho iniziato a calolare la dimensione tramite una formula cosi sono sicuro che se ci sono i due campi del local len allora la calola sempre ( non ho gestito le exception ancora per un paio di occasioni perche devo capire meglio e piu rigorosamente quando scartare un immagine se mancano i dati) 
+COLMAP è un motore di calcolo scritto in C ottimo per la generazione di nuvole di punti sparse ricevendo in input delle immagini.
 
-ho fatto su helper per aprire i file json e restituire un dict anche se non servira pero lho fatta 
+Quando viene avviata la pipeline di colmap inizia la generazione della nuvola sparsa che viene depositata in `data/colmap/sparse`: può capitare che l'algoritmo non riesca a trovare un' unica nuvola di punti unita, in tal caso verrebbe lanciato un alert e verrebbe utilizzata la nuvola più grande che è stata riconosciuta. Successivamente per orientare i dati ottenuti, a seconda della modalità di scan scelta, viene attivato l'aligner che si occupa di raddrizzare la nuvola nel piano e deposita il risultato nella cartella `data/colmap/aligned`.
 
-ho scartato anche orientation perche allinzio la intendevo in modo diverso come se fosse un drone che scattava le foto. e tramite gli exif era possibile solo estrarre se la foto era fatta im verticale o orizzontale.
+E' importante non utilizzare i dati GPS in una scansione indoor perchè le camere tra loro saranno troppo vicine e l'allinemanto andrà in crash. Una volta che la nuvola sparsa è pronta i dati ottenuti vengono preparati per la fase successiva, alle immagini viene rimossa la distorsione e vine depositato tutto nella cartella `data/colmap/undistorted`.
 
-## 11/03/2026 :
+Nella fase di matching per confrontare i punti trovati ci sono tre comandi possibili: exhaustive_matcher, sequential_matcher e spatial_metcher. Il primo confronta tutti i punti tra di loro, richiede diverso tempo se i punti sono tanti portanto la complessita a O(N^2) ed è perfetta se i punti sono pochi. Il secondo metodo consiste nel definire un numero di punti precedenti e successivi da confrontare per ogni punto, questo permette di abbassare la complessita se i punti sono molti (Es. >300). Il terzo metodo utilizza i dati gps e confronta le foto vicine tra di loro nello spazio evitando scansioni inutili, è utile quando si mappa una zaona molto larga.
 
-implemento la soft delete per le immagini e modifico metadata_extractor.py e studio piu rigorosamente la gli errori nelle immagini:
-un immagina va in error se:
-- non si apre o e corratta
-- no focal length
-- no foacl length 35mm
-- no resolution
-- no lon o len 
+COLMAP riuscirebbe a proseguire e a generare anche la nuvola di punti densa ma le prestazioni dell' algoritmo che usa sono nettamnte inferiori a quelle di OpenMVS.
 
-creato la funzione per la promozione delle foto e le sottofunzioni e quella per ripulre lambiente 
+Faccio menzione del file metadata_uploade.py che serviva nelle versioni precedente di colmap per preparare un database lightsql con i dati delle camere, con la versione 4.0.0 o superiore non è più necessario ed è diventato sconsigliato per non imbattersi in problemi di allinemanto dovuti al formato dei dati sul database.
 
-ok a questo punto costruisci con colmap la nuvola di punti e il modello 3d e con open3d pulisco il risultato e lo visualizzo 
+```
+( Metadata uploading ) -- > | Sparse | -- > | Aligned | -- > | Undisotrted |
+```
 
-12/03/2026 
+### OpenMVS
 
-oggi ho proseguito allimplementazione del colmap manager e ho capito che e una tecnologia che e specifica
+Con OpenMVS riesco a generare la nuvola di punti densa a partire dai dati forniti da COLMAP e successivamente la mesh, la mesh raffinata e la mesh texturizzata.
+Per usare correttamnte OpenMVS è necessario impostare la cartella di lavoro quando si lancia il subprocess per evitare problemi di path.
 
-ora funziona processa servono almeno 15 immagini e non devo cercare di mappare un oggetto trasparente, inoltre ho diminuito il numero max di threads perche andava in crash il programma e ho staccato luso della mia scheda video perche non e nvidia.
+Nelle versione 2.4 di OpenMVS c'è un bug nella texturizzazione della mesh e per procedere con la pipeline e necessario disabilitare i flag `--local-seam-leveling` e `--global-seam-leveling`.
+In maniera alternativa è possibile passare alla versione 2.1 facendo pero attenzione ai nomi dei flag.
 
-come scattare: 20 - 30 foto muovendosi a cerchio su diversi piani di altezza e angolazione fissando loggetto, luce naturale e morbida e un fondo di giornale con tanti punti o cartina geografica insimma cose con molti dettagli 
+```
+| Importation | -- > | Dense | -- > | Mesh | -- > | Refine | -- > | Texture |
+```
 
-13/03/2026 
-creo il servizio per iniziare a riorganizzare col map, sposto in altri due file la generazionedel db e la generazione del file txt
-l'overlap se messo a 10 quando col map confronta la foto 50 su 100 la confronta con le altre foto tra 40 e 60 
+### Open3D
 
-16/03/2026
+Open3D viene usato per ripulire, scalare e riallineare il modello finale. 
 
-ho scoeprto che non sempre servono i dati gps perche vengono usati nella fase appena successiva della creazione della nuvola sparsa ma solo in caso di ambienti outdoor se le foto sono in uno spazio troppo ristretto il calcolo fallirà.
-va leggermetne modificato il criterio di scarto delle foto
+```
+| Importation | -- > | Topological cleaning | -- > | Noise removal | -- > | Alignement | -- > 
 
-17/03/2026 
+( Scaling ) -- > | Smoothing | -- > | Exportation |
+```
 
-terminata la ristrutturazione generale dell'app, rimane da decidere la soft delite o la cancellazione diretta con filter (in ogni caso prima di colmap devo avere un array pulito), da sistemare le exception, da implmentare le funzionalita legate al flag SCAN_MODE, e continuare con aligned e la nuvola di punti densa
+## Shooting & Asset Acquisition
 
-ho scoperto che per la costruzione della nuvola densa non si puo non usare la scheda video nvidia quindi sto valutando un alternativa (openmvs), open3d invece lo usiamo per la fase successiva (mesh) perche e ottimo per modellare il 3d ma non e in grado di crearlo a partire dalle immagini.
-openmvs e famoso per prendere i dati da colmap (nuvola sparsa) e creare la rispettiva nuvola densa .ply
+E' consigliata la modalità video per inizializzare i dati nel programma perchè è in grado di generare molte piu foto significative per l'elaborazione.
 
-1. COLMAP (Il Geometra)
-Cosa fa: Estrae i punti chiave, capisce la posizione delle fotocamere nello spazio, crea la Nuvola Sparsa e (se sei outdoor) fa l'Allineamento GPS.
+Durante la fase di ripresa e consigliato eseguire prima uno scan generare dell'area girandoci attorno da varie altezze e poi di avvicinarsi agli spigoli ed ai dettagli per aggiungere informazione ai frame. Più lungo sarà il video e più frame si potranno ricavare e maggiore saranno le prestazioni del modello finale, ovviamente la quantità di foto e direttamente proporzionale al tempo di esecuzione.
 
-Perché lui: È il re indiscusso dello Structure from Motion (SfM). Nessuno calcola lo spazio meglio di lui. Alla fine, esporta un file pacchetto per OpenMVS.
+## System Requirements & Performance
 
-2. OpenMVS (Il Costruttore)
-Cosa fa: Prende i dati di COLMAP e genera la Nuvola Densa.
+Il progetto per eleaborare in modo efficente senza crash necessita di una buona RAM (minimo 8GB) e di una scheda video NVIDIA: è possibile disabilitare il flag use_gpu ma questo comporterebbe un aumento del tempo di calcolo.
 
-✨ Il colpo di scena sulla Mesh: Ti consiglio di far fare la Mesh e la Texture a OpenMVS, non a Open3D! OpenMVS ha dei moduli specifici (ReconstructMesh e TextureMesh) che non solo creano la pelle solida, ma proiettano le tue fotografie originali sopra la Mesh, rendendola identica alla realtà (il vero Digital Twin). Open3D fa molta fatica a "colorare" bene una mesh partendo dalle foto.
+Il progetto deve elaborare una grande quantità di frame quindi utilizzare un pc con poca RAM potrebbe causare l'itnterruzione dell'esecuzione del programma.
 
-3. Open3D (L'Ispettore / L'Ingegnere)
-Cosa fa: Prende la Mesh texturizzata (o la Nuvola Densa) finale generata da OpenMVS, la apre a schermo e ti permette di fare le operazioni ingegneristiche:
-
-Scalatura (Indoor): Clicchi su due punti dello scatolone, gli dici "sono 45 cm" e lui ridimensiona tutto il modello 3D nel mondo reale.
-
-Pulizia: Tagli via il pavimento o i pezzi di stanza che non ti interessano (Cropping).
-
-Misurazioni: Calcoli volumi, distanze o aree.
-
-ok questa parte e presa da gemini comuqnue voglio rimuovere la parte di mesh e dense da colmap perche non posso fare il dense senza una scheda video nvidia ma comunque sarebbe meno efficiente rispetto ad usare openmvs quidni riorganizzo il progetto e le cartelle data e creo tre manage per le tre parti
-
-19/03/2026
-
-ho ottenuto la prima nuvola di punti densa: ho modificato il colmap manager ora come ultimo passaggio converto le foto in undistorted e succesivamente importo il model.mvs, successivamente quando sono pronto lancio il comando per generare la nuvola di punti
-
-ho implmentato il poisson matcher ma fa abbassare veramente tanto la qualita del mesh quindi sto cercando un alternativa.
-
-23/03/2026 
-negli ultimi due giorni ho lavorato 2 ore (weekend) e ho fatto tetst+ refactorign codice, ho visto che se attivo la modalita gpu sulla creazione della nuvola sparsa va di brutto. il risultato e pressoche uguale ma in termini di tempo ci mette pochissimo.
-
-ora scarico open3d : import open3d as o3d ( libreria python)
-pip install open3d
-
-24 / 03 /2026 
-il problema di reconstructorMesh penso che fosse dovuto alla versione 2.4 quindi lho sostituita con la 2.2 ma non posso testarla su questo pc per problemi di ram pero il codice di errore e cambiato. 
-ho proseguito con il processor manager, ho creato un wrapper per non dover clonare ogni volta il codice e ho aggiunto la pipeline underwater che impiega deisamente piu tempo di calcolo della standard quindi introduco un caricamento 
-
-dopo non pochi problemi ho abortito la barra di caricamento e reconstruct mesh non funziona almeno con il processore percio faccio un tentativo con open3d.
-
-ok ho provato ad usare open3d non e male, non so come sarebbe dovuto venire con openmvs ma quello generato da open3d e molto carino, ovviamente dopo lo texturizzo rimuovo il rumore, ora definisco allora il ciclo: genero con colmap la nuvola sparsa, aligned e le immagini undistorted, poi con open mvs la nuvola densa e poi ricostruisco la mesh con open 3d la texturizzo e tolgo il rumore. 
-
-ho capito che scaricando la versione cuda di openmvs ti obbliga ad usare la gpu non poi fermarlo quindi nel caso crasha la gen. con colmap anche se hai la cuda si puo disabilitre con openmvs no 
-
-stessa cosa per reconstructor mesh crasha perche non mi basta la ram scommetto che se fosse abbastnza no crasherebbe il comando stessa cosa per la versione cuda 
-
-devo specificare in openmvs la cartella dove lavoro perche senno non capisce
-
-comunque crasha la versione cpu perche il comando era sbagliato.
-
-Ho notato che spesso crasha per colpa dellimportazione di colmap in openmvs, perche se la sparse non e appena stata generata vengono salvati dei percorsi relativi nel model che possono venire mal interpretati dalla gen della dense. quindi non riguarda cpu o altro ma e prioprio un errore perche le immagini non vengono riconosciute perche le cerca sul desktop e non nel progetto
-
-open 3d veloce e meno risorse
-
-open mvs lento piu preciso e qualitativo 
-
-
-
-
-
-
-
-"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\ReconstructMesh.exe" dense.mvs -o dense_mesh.mvs
-
-"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\RefineMesh.exe" dense_mesh.mvs
-
-"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\TextureMesh.exe" dense_mesh_refine.mvs --export-type obj
-
-
-07/04/2026
-
-scoeprto bug da forum di openmvs 2.4, in pratica le texture non vengono incollata bene se non disabilito manualmente due flags. in caso non funzioni come approccio passero ad una versone più vecchia (2.1) che a detta degli utentni è piu stabile e non presenta quetso bug.
-
-"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\TextureMesh.exe" dense_mesh_refine.mvs --export-type obj --local-seam-leveling 0 --global-seam-leveling 0
-
-setup linux
-
-- caricare openmvs linux
-
-- scaricare da one drive le foto / video in formato zip
-abilitare i permessi di condivisione su google drive
-pip install gdown
-gdown --id 1k2IHSf-h255XbfoZJkMKo_O6c8lpXTXM(link cartella) -O data/raw.zip(destinazione)
-gdown --id 1k2IHSf-h255XbfoZJkMKo_O6c8lpXTXM -O data/raw.zip
-
-- python 
-# Aggiorna i pacchetti
-sudo apt update
-sudo apt install software-properties-common -y
-
-# Aggiungi il repository per versioni Python specifiche
-sudo add-apt-repository ppa:deadsnakes/ppa -y
-sudo apt update
-
-# Installa Python 3.11 e l'utility per le venv
-sudo apt install python3.11 python3.11-venv python3.11-dev -y
-
-cd ~/workspace/progetto
-python3.11 -m venv venv
-
-# Attiva la venv
-source venv/bin/activate
-
-# Verifica la versione
-python --version 
-# Deve rispondere: Python 3.11.x
-
-- colmap
-# Crea un nuovo ambiente specifico per la 4.0.2
-conda create -n colmap4_env -c conda-forge colmap=4.0.2 -y
-conda activate colmap4_env
-
-se non si installa il problema e cuda 
-
-conda update --all -c conda-forge -y 
-se non va
-
-- permessi
-chmod +x ./engines/openmvs/*
-
-colmap per orienter
-
-& "C:\Users\daxx6\Desktop\progetto-digital-twin\engines\colmap\bin\colmap.exe" model_orientation_aligner 
---input_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\sparse\0" 
---output_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\sparse\0" 
---method MANHATTAN-WORLD 
---image_path "C:\Users\daxx6\Desktop\progetto-digital-twin\data\processing\processed"
-
-& "C:\Users\daxx6\Desktop\progetto-digital-twin\engines\colmap\bin\colmap.exe" model_orientation_aligner --help
-
-
-"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\colmap\bin\colmap.exe" model_transformer --input_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\sparse\0" --output_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\sparse\0" --transform_path "C:\Users\daxx6\Desktop\progetto-digital-twin\workspace\rotazione.txt"
-
-open mvs texture e mesh
-
-"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\ReconstructMesh.exe" dense.mvs 
---archive-type 2 
--o mesh.mvs 
---thickness-factor 1.5 
---min-point-distance 2
-
-"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\RefineMesh.exe" mesh.mvs 
--o refined.mvs
-
-"C:\Users\daxx6\Desktop\progetto-digital-twin\engines\openmvs\TextureMesh.exe" refined.mvs 
--o textured.mvs 
---export-type obj 
---local-seam-leveling 0 
---global-seam-leveling 0 
---max-texture-size 8192
-
-ok ora faccioa latre prova
-
-# 2. RADDRIZZA: Ruota di 180 gradi sull'asse X
-# Creiamo la matrice di rotazione
-R = pcd.get_rotation_matrix_from_xyz((np.pi, 0, 0)) # np.pi = 180°
-pcd.rotate(R, center=(0, 0, 0))
