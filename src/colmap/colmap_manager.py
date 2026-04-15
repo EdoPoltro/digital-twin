@@ -81,8 +81,12 @@ class ColmapManager:
             "--database_path", str(self.cameras_db_path),
             "--image_path", str(self.input_images_dir),
             "--ImageReader.single_camera", "1",
+            # '--ImageReader.camera_model', 'OPENCV', # underwater test
+            # '--ImageReader.default_focal_length_factor', '0.7', # underwater test
             "--FeatureExtraction.use_gpu", str(self.use_gpu),
             "--FeatureExtraction.num_threads", '2'
+            # '--SiftExtraction.peak_threshold', '0.002', # underwater test
+            # '--SiftExtraction.edge_threshold', '15' # underwater test
         ]
 
         try:

@@ -52,7 +52,7 @@ DATA_DIR = BASE_DIR / 'data'
 
 DATA_PROCESSING_DIR = DATA_DIR / 'processing'
 DATA_PROCESSING_VIDEO_DIR = DATA_PROCESSING_DIR / 'video'
-DATA_PROCESSING_VIDEO_PATH = DATA_PROCESSING_VIDEO_DIR / 'video.mov'
+DATA_PROCESSING_VIDEO_PATH = DATA_PROCESSING_VIDEO_DIR / 'video.MP4'
 DATA_PROCESSING_RAW_DIR = DATA_PROCESSING_DIR / 'raw'
 DATA_PROCESSING_INTERIM_DIR = DATA_PROCESSING_DIR / 'interim'
 DATA_PROCESSING_PROCESSED_DIR = DATA_PROCESSING_DIR / 'processed'
@@ -85,13 +85,13 @@ DATA_OPEN3D_MODEL_OBJ = DATA_OPEN3D_DIR / 'model.obj'
 SUPPORTED_INPUT_FORMATS = ('.jpg', '.jpeg', '.png', '.tiff', '.tif')
 DEFAULT_PROCESSED_OUTPUT_FORMAT = '.png'
 SUPPORTED_3D_FORMATS = ('.ply', '.obj', '.stl')
-SUPPORTED_VIDEO_FORMATS = ('.mp4', '.mov', '.avi', '.mkv', '.webm', '.MOV')
+SUPPORTED_VIDEO_FORMATS = ('.mp4', '.mov', '.avi', '.mkv', '.webm', '.MOV', '.MP4')
 
 # FLAGS
 
 DEFAULT_SCAN_MODE: Literal['indoor', 'outdoor'] = 'indoor' 
-DEFAULT_ENVIRONMENT_MODE: Literal['standard', 'underwater'] = 'standard'
-DEFAULT_IMAGES_EXTRACTION_MODE: Literal['video', 'images'] = 'images'
+DEFAULT_ENVIRONMENT_MODE: Literal['standard', 'underwater'] = 'underwater'
+DEFAULT_IMAGES_EXTRACTION_MODE: Literal['video', 'images'] = 'video'
 DEFAULT_MIN_PHOTO_ERROR = 5
 DEFAULT_MIN_PHOTO_WARNING = 15
 
@@ -100,7 +100,10 @@ DEFAULT_MIN_PHOTO_WARNING = 15
 VIDEO_MIN_SHARPNESS = 30.0       # nitidezza per tenere il frame, più alta più è selettivo
 VIDEO_MIN_DIFFERENCE = 0.25      # diversificazione delle foto
 VIDEO_SAMPLE_INTERVAL = 0.5      # ogni quanto prende il frame
-VIDEO_MAX_FRAMES = 200           # numero massimo di frame estratti
+
+# VIDEO_MIN_SHARPNESS = 15.0       # nitidezza per tenere il frame, più alta più è selettivo
+# VIDEO_MIN_DIFFERENCE = 0.10      # diversificazione delle foto
+# VIDEO_SAMPLE_INTERVAL = 0.2      # ogni quanto prende il frame
 
 # ENVIRONMENT SETUP
 if DEFAULT_IMAGES_EXTRACTION_MODE == 'images':

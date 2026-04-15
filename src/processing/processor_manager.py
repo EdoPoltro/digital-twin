@@ -42,7 +42,7 @@ class ProcessorManager:
         Funzione dedicata alla pipeline sottacqua.
         """
         self._pipeline_wrapper(
-            lambda img: self._run_hard_clahe(self._run_denoising(self._run_red_channel_boost(img))), 
+            lambda img: self._run_sharpening(self._run_hard_clahe(self._run_gamma_correction(self._run_red_channel_boost(img), gamma=1.5 ))), 
             'Underwater'
         )
 
@@ -104,12 +104,6 @@ class ProcessorManager:
         r_boosted = cv2.addWeighted(r, 1.3, np.zeros_like(r), 0, 0)
         return cv2.merge((b, g, r_boosted))
 
-    def _run_denoising(self, image: MatLike) -> MatLike:
-        """
-        Funzione che rimuove il colore.
-        """
-        return cv2.fastNlMeansDenoisingColored(image, None, h=10, hColor=10, templateWindowSize=7, searchWindowSize=21)
-
     def _run_hard_clahe(self, image: MatLike) -> MatLike:
         """
         Funzione che inserisce un forte contrasto nella foto.
@@ -120,6 +114,14 @@ class ProcessorManager:
         cl = clahe.apply(l_channel)
         limg = cv2.merge((cl, a_channel, b_channel))
         return cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+    
+    def _run_gamma_correction(self, image: MatLike, gamma: float = 1.5) -> MatLike:
+        """
+        Schiarisce le zone scure (ombre) in modo non lineare. 
+        """
+        invGamma = 1.0 / gamma
+        table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+        return cv2.LUT(image, table)
 
     def get_captured_images(self) -> list[CapturedImage]:
         return self.captured_images

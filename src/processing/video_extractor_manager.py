@@ -9,7 +9,6 @@ from config import (
     DEFAULT_MIN_PHOTO_ERROR,
     DEFAULT_MIN_PHOTO_WARNING,
     SUPPORTED_VIDEO_FORMATS, 
-    VIDEO_MAX_FRAMES, 
     VIDEO_MIN_DIFFERENCE, 
     VIDEO_MIN_SHARPNESS, 
     VIDEO_SAMPLE_INTERVAL
@@ -27,14 +26,12 @@ class VideoExtractorManager:
             min_sharpness: float = VIDEO_MIN_SHARPNESS,
             min_difference: float = VIDEO_MIN_DIFFERENCE,
             sample_interval: float = VIDEO_SAMPLE_INTERVAL,
-            max_frames: float = VIDEO_MAX_FRAMES
         ):
         self.video_path = video_path
         self.output_dir = output_dir
         self.min_sharpness = min_sharpness
         self.min_difference = min_difference
         self.sample_interval = sample_interval
-        self.max_frames = max_frames
 
         self._run_constructor_validator()
 

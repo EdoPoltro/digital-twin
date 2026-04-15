@@ -39,7 +39,7 @@ def start_digital_twin_pipeline(extraction_mode: Literal['video', 'images'] = DE
 
         if scan_mode == 'outdoor' and extraction_mode == 'images': start_full_metadata_uploading(captured_images)
 
-        colmap = ColmapManager(use_gpu=False)
+        colmap = ColmapManager(use_gpu=True)
 
         colmap.start_full_colmap_pipeline()
 
@@ -47,7 +47,7 @@ def start_digital_twin_pipeline(extraction_mode: Literal['video', 'images'] = DE
 
         openmvs.start_full_openmvs_pipeline() 
 
-        open3d = Open3dManager(model_scale=False)
+        open3d = Open3dManager(model_flip=True)
 
         open3d.start_full_open3d_pipeline()
 
